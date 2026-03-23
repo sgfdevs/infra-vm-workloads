@@ -5,7 +5,9 @@ export TF_VAR_proxmox_endpoint="https://x86-node-01.levizitting.com:8006"
 export TF_VAR_proxmox_api_token="sgfdevs-gha@pve!gha=your-token-secret"
 export TF_VAR_proxmox_insecure="true"
 export TF_VAR_vm_template_file_id="x86-node-01:iso/ubuntu-24.04-server-cloudimg-amd64.img"
-export TF_VAR_vm_user_ssh_public_key="ssh-ed25519 AAAA... your-key"
+
+# Optional: rotate generated SSH key material
+export TF_VAR_vm_ssh_key_version="1"
 
 # Optional: pin expected node names for connectivity checks
 export TF_VAR_expected_node_names='["x86-node-01","x86-node-02"]'

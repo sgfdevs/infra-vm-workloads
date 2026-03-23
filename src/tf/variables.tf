@@ -15,6 +15,12 @@ variable "proxmox_insecure" {
   default     = true
 }
 
+variable "aws_region" {
+  description = "AWS region for SSM parameters"
+  type        = string
+  default     = "us-east-2"
+}
+
 variable "expected_node_names" {
   description = "Optional list of expected node names for connectivity validation"
   type        = list(string)
@@ -33,6 +39,7 @@ variable "workload_vms" {
     node_name    = string
     vm_id        = number
     ipv4_address = string
+    role         = string
   }))
 
   default = {
@@ -40,17 +47,26 @@ variable "workload_vms" {
       node_name    = "x86-node-01"
       vm_id        = 4201
       ipv4_address = "10.20.4.10"
+      role         = "server"
     }
     vm-workload-02 = {
       node_name    = "x86-node-02"
       vm_id        = 4202
       ipv4_address = "10.20.4.11"
+      role         = "agent"
     }
   }
 
   validation {
     condition     = length(var.workload_vms) == 2
     error_message = "Exactly two workload VMs must be defined."
+  }
+
+  validation {
+    condition = alltrue([
+      for vm in values(var.workload_vms) : contains(["server", "agent"], vm.role)
+    ])
+    error_message = "Each workload VM role must be either 'server' or 'agent'."
   }
 }
 
@@ -66,9 +82,28 @@ variable "vm_user" {
   default     = "ubuntu"
 }
 
-variable "vm_user_ssh_public_key" {
-  description = "SSH public key for cloud-init user"
+variable "vm_additional_ssh_public_keys" {
+  description = "Optional additional SSH public keys for cloud-init user"
+  type        = list(string)
+  default     = []
+}
+
+variable "vm_ssh_key_name" {
+  description = "Identifier for generated workload SSH key"
   type        = string
+  default     = "infra-vm-workloads"
+}
+
+variable "vm_ssh_key_version" {
+  description = "Rotation version for generated workload SSH key"
+  type        = number
+  default     = 1
+}
+
+variable "vm_ssh_private_key_ssm_path" {
+  description = "SSM parameter path for generated workload SSH private key"
+  type        = string
+  default     = "/homelab/sgfdevs/infra-vm-workloads/ssh-private-key"
 }
 
 variable "vm_cpu_cores" {

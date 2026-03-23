@@ -1,15 +1,6 @@
 ---
-all:
-  children:
-    k3s_servers:
-      hosts: {}
-    k3s_agents:
-      hosts: {}
-    k3s_cluster:
-      children:
-        k3s_servers:
-        k3s_agents:
-  vars:
-    ansible_user: ubuntu
-    ansible_ssh_private_key_file: ""
-    ansible_ssh_use_ssh_agent: true
+plugin: cloud.terraform.terraform_provider
+binary_path: "tofu"
+state_file: ""
+project_path: ../tf
+search_child_modules: true

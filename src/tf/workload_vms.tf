@@ -57,7 +57,10 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
     user_account {
       username = var.vm_user
-      keys     = [trimspace(var.vm_user_ssh_public_key)]
+      keys = concat(
+        [module.ssh_key.public_key],
+        [for key in var.vm_additional_ssh_public_keys : trimspace(key)]
+      )
     }
   }
 

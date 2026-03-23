@@ -30,10 +30,17 @@ output "ansible_hosts" {
   value = {
     for name, spec in var.workload_vms :
     name => {
-      ansible_host = spec.ipv4_address
-      ansible_user = var.vm_user
-      node_name    = spec.node_name
-      vm_id        = spec.vm_id
+      ansible_host         = spec.ipv4_address
+      ansible_user         = var.vm_user
+      node_name            = spec.node_name
+      vm_id                = spec.vm_id
+      role                 = spec.role
+      ssm_private_key_path = module.ssh_key.ssm_path
     }
   }
+}
+
+output "ssh_private_key_ssm_path" {
+  description = "SSM path for generated workload SSH private key"
+  value       = module.ssh_key.ssm_path
 }

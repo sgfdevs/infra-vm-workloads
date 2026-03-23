@@ -3,3 +3,7 @@ provider "proxmox" {
   api_token = var.proxmox_api_token
   insecure  = var.proxmox_insecure
 }
+
+provider "aws" {
+  region = var.aws_region
+}

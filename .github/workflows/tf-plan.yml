@@ -21,7 +21,6 @@ jobs:
         export TF_VAR_proxmox_endpoint="${{ secrets.TF_VAR_proxmox_endpoint }}"
         export TF_VAR_proxmox_api_token="${{ secrets.TF_VAR_proxmox_api_token }}"
         export TF_VAR_vm_template_file_id="${{ secrets.TF_VAR_vm_template_file_id }}"
-        export TF_VAR_vm_user_ssh_public_key="${{ secrets.TF_VAR_vm_user_ssh_public_key }}"
 
   plan:
     needs: validate
@@ -33,6 +32,5 @@ jobs:
         export TF_VAR_proxmox_endpoint="${{ secrets.TF_VAR_proxmox_endpoint }}"
         export TF_VAR_proxmox_api_token="${{ secrets.TF_VAR_proxmox_api_token }}"
         export TF_VAR_vm_template_file_id="${{ secrets.TF_VAR_vm_template_file_id }}"
-        export TF_VAR_vm_user_ssh_public_key="${{ secrets.TF_VAR_vm_user_ssh_public_key }}"
       aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
       output_encryption_key: ${{ secrets.OUTPUT_ENCRYPTION_KEY }}

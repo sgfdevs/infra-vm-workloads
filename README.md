@@ -25,13 +25,14 @@ make tf-plan
 
 - `src/tf/connectivity.tf` includes a provider connectivity check that reads Proxmox node inventory.
 - `src/tf/workload_vms.tf` provisions two workload VMs pinned one-per-node by default.
+- `src/tf/ssh_key_inventory.tf` generates an SSH key, stores its private key in SSM, and publishes hosts via the Terraform Ansible provider.
+- `src/ansible/inventory.yml` uses the Terraform inventory plugin (`cloud.terraform.terraform_provider`).
 
 ## Required Terraform Variables
 
 - `TF_VAR_proxmox_endpoint`
 - `TF_VAR_proxmox_api_token`
 - `TF_VAR_vm_template_file_id`
-- `TF_VAR_vm_user_ssh_public_key`
 
 ## GitHub Workflows
 
@@ -47,5 +48,3 @@ make tf-plan
 - `TF_VAR_proxmox_endpoint`
 - `TF_VAR_proxmox_api_token`
 - `TF_VAR_vm_template_file_id`
-- `TF_VAR_vm_user_ssh_public_key`
-- `ANSIBLE_SSH_KEY`
