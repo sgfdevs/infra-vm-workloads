@@ -7,8 +7,8 @@ locals {
   vm_cpu_type                   = "x86-64-v2-AES"
   vm_memory_mb                  = 8192
   vm_disk_size_gb               = 80
-  vm_datastore_id               = "vm-data"
-  vm_cloud_init_datastore_id    = "vm-data"
+  vm_datastore_id               = "vmdata"
+  vm_cloud_init_datastore_id    = "vmdata"
   vm_network_bridge             = "sgfdevs"
   vm_vlan_id                    = 13
 
