@@ -1,9 +1,9 @@
 terraform {
   backend "s3" {
-    bucket         = "levizitting-infra-tf-state"
+    bucket         = "sgfdevs-infra-tf-state"
     key            = "sgfdevs-vm-workloads/terraform.tfstate"
     region         = "us-east-2"
-    dynamodb_table = "terraform-locks"
+    dynamodb_table = "sgfdevs-infra-tflock"
     encrypt        = true
   }
 }
