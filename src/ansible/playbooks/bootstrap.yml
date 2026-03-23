@@ -1,0 +1,37 @@
+---
+- name: Prepare nodes for K3s
+  hosts: k3s_cluster
+  become: true
+  gather_facts: true
+  vars:
+    k3s_version: v1.35.1+k3s1
+    server_group: k3s_servers
+    agent_group: k3s_agents
+    api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"
+  roles:
+    - k3s.orchestration.prereq
+
+- name: Install K3s server nodes
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+  vars:
+    k3s_version: v1.35.1+k3s1
+    server_group: k3s_servers
+    agent_group: k3s_agents
+    api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"
+    cluster_context: sgfdevs-k3s
+  roles:
+    - k3s.orchestration.k3s_server
+
+- name: Install K3s agent nodes
+  hosts: k3s_agents
+  become: true
+  gather_facts: true
+  vars:
+    k3s_version: v1.35.1+k3s1
+    server_group: k3s_servers
+    agent_group: k3s_agents
+    api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"
+  roles:
+    - k3s.orchestration.k3s_agent

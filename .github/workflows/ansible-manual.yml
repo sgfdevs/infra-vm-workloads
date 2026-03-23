@@ -6,7 +6,7 @@ on:
       playbook:
         description: Playbook filename under src/ansible/playbooks/
         type: string
-        default: bootstrap-k3s.yml
+        default: bootstrap.yml
       initialize-terraform:
         description: Initialize Terraform first
         type: boolean

@@ -4,4 +4,7 @@ collections:
   - name: amazon.aws
   - name: ansible.posix
   - name: community.general
+  - name: https://github.com/k3s-io/k3s-ansible.git
+    type: git
+    version: 1.2.0
   - name: kubernetes.core
