@@ -12,13 +12,13 @@ locals {
   vm_network_bridge             = "sgfdevs"
 
   workload_vms = {
-    vm-workload-01 = {
+    sgfdevs-k8s-01 = {
       node_name    = "x86-node-01"
       vm_id        = 4201
       ipv4_address = "10.20.4.10"
       role         = "server"
     }
-    vm-workload-02 = {
+    sgfdevs-k8s-02 = {
       node_name    = "x86-node-02"
       vm_id        = 4202
       ipv4_address = "10.20.4.11"
