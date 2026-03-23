@@ -1,0 +1,37 @@
+name: Ansible Manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      playbook:
+        description: Playbook filename under src/ansible/playbooks/
+        type: string
+        default: bootstrap-k3s.yml
+      initialize-terraform:
+        description: Initialize Terraform first
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+jobs:
+  run:
+    uses: glitchedmob/infra-gha/.github/workflows/ansible-run.yml@v0.6.6
+    with:
+      working-directory: src/ansible
+      initialize-terraform: ${{ inputs.initialize-terraform }}
+      terraform-working-directory: src/tf
+      playbook: ${{ inputs.playbook }}
+      use-ssh-key: true
+    secrets:
+      envrc_content: |
+        export TF_VAR_proxmox_endpoint="${{ secrets.TF_VAR_proxmox_endpoint }}"
+        export TF_VAR_proxmox_api_token="${{ secrets.TF_VAR_proxmox_api_token }}"
+        export TF_VAR_vm_template_file_id="${{ secrets.TF_VAR_vm_template_file_id }}"
+        export TF_VAR_vm_user_ssh_public_key="${{ secrets.TF_VAR_vm_user_ssh_public_key }}"
+      ssh_key: ${{ secrets.ANSIBLE_SSH_KEY }}
+      aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
+      output_encryption_key: ${{ secrets.OUTPUT_ENCRYPTION_KEY }}

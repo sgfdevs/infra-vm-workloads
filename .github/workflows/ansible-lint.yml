@@ -1,0 +1,16 @@
+name: Ansible Lint
+
+on:
+  pull_request:
+    paths:
+      - src/ansible/**
+      - .github/workflows/ansible-lint.yml
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    uses: glitchedmob/infra-gha/.github/workflows/ansible-lint.yml@v0.6.6
+    with:
+      working-directory: src/ansible

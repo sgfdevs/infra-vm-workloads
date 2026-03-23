@@ -32,3 +32,20 @@ make tf-plan
 - `TF_VAR_proxmox_api_token`
 - `TF_VAR_vm_template_file_id`
 - `TF_VAR_vm_user_ssh_public_key`
+
+## GitHub Workflows
+
+- `tf-plan.yml`: PR validation for Terraform.
+- `tf-plan-apply.yml`: apply on `main` and optional manual plan-only runs.
+- `ansible-lint.yml`: lint `src/ansible`.
+- `ansible-manual.yml`: manual playbook execution.
+
+## Required GitHub Secrets
+
+- `AWS_ROLE_ARN`
+- `OUTPUT_ENCRYPTION_KEY`
+- `TF_VAR_proxmox_endpoint`
+- `TF_VAR_proxmox_api_token`
+- `TF_VAR_vm_template_file_id`
+- `TF_VAR_vm_user_ssh_public_key`
+- `ANSIBLE_SSH_KEY`
