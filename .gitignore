@@ -1,0 +1,15 @@
+.DS_Store
+.envrc
+
+# Terraform/OpenTofu
+*.tfplan
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Python/Ansible
+.venv/
+__pycache__/
+*.pyc
+src/ansible/collections/
