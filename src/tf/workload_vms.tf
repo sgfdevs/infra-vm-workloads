@@ -43,10 +43,6 @@ resource "proxmox_virtual_environment_vm" "workload" {
   started = true
   on_boot = true
 
-  agent {
-    enabled = true
-  }
-
   cpu {
     cores = local.vm_cpu_cores
     type  = local.vm_cpu_type
@@ -83,7 +79,7 @@ resource "proxmox_virtual_environment_vm" "workload" {
     user_account {
       username = local.vm_user
       keys = concat(
-        [module.ssh_key.public_key],
+        [trimspace(module.ssh_key.public_key)],
         [for key in local.vm_additional_ssh_public_keys : trimspace(key)]
       )
     }
