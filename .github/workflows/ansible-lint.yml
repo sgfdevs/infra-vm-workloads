@@ -11,6 +11,6 @@ permissions:
 
 jobs:
   lint:
-    uses: glitchedmob/infra-gha/.github/workflows/ansible-lint.yml@v0.6.6
+    uses: glitchedmob/infra-gha/.github/workflows/ansible-lint.yml@v0.7.1
     with:
       working-directory: src/ansible

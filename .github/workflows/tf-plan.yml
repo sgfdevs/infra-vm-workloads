@@ -13,22 +13,25 @@ permissions:
 
 jobs:
   validate:
-    uses: glitchedmob/infra-gha/.github/workflows/tf-validate.yml@v0.6.6
+    uses: glitchedmob/infra-gha/.github/workflows/tf-validate.yml@v0.7.1
     with:
       init-backend: false
     secrets:
       envrc_content: |
         export TF_VAR_proxmox_endpoint="${{ secrets.TF_VAR_proxmox_endpoint }}"
         export TF_VAR_proxmox_api_token="${{ secrets.TF_VAR_proxmox_api_token }}"
+      aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
 
   plan:
     needs: validate
-    uses: glitchedmob/infra-gha/.github/workflows/tf-plan-apply.yml@v0.6.6
+    uses: glitchedmob/infra-gha/.github/workflows/tf-plan-apply.yml@v0.7.1
     with:
       plan-only: true
+      headscale-login-server: https://headscale.levizitting.com
     secrets:
       envrc_content: |
         export TF_VAR_proxmox_endpoint="${{ secrets.TF_VAR_proxmox_endpoint }}"
         export TF_VAR_proxmox_api_token="${{ secrets.TF_VAR_proxmox_api_token }}"
+      headscale_auth_key: ${{ secrets.HEADSCALE_AUTH_KEY }}
       aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
       output_encryption_key: ${{ secrets.OUTPUT_ENCRYPTION_KEY }}
