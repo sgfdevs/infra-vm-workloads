@@ -1,6 +1,14 @@
 variable "proxmox_endpoint" {
-  description = "Proxmox API endpoint, including scheme and port"
+  description = "Proxmox API endpoint URL (for example https://x86-node-01:8006/)"
   type        = string
+
+  validation {
+    condition = (
+      startswith(var.proxmox_endpoint, "https://") &&
+      !can(regex("/api2/json/?$", var.proxmox_endpoint))
+    )
+    error_message = "proxmox_endpoint must be an https URL without /api2/json, for example https://x86-node-01:8006/"
+  }
 }
 
 variable "proxmox_api_token" {
@@ -9,22 +17,10 @@ variable "proxmox_api_token" {
   sensitive   = true
 }
 
-variable "proxmox_insecure" {
-  description = "Allow insecure Proxmox TLS"
-  type        = bool
-  default     = true
-}
-
 variable "aws_region" {
   description = "AWS region for SSM parameters"
   type        = string
   default     = "us-east-2"
-}
-
-variable "expected_node_names" {
-  description = "Optional list of expected node names for connectivity validation"
-  type        = list(string)
-  default     = []
 }
 
 variable "proxmox_pool_id" {
@@ -92,18 +88,6 @@ variable "vm_ssh_key_name" {
   description = "Identifier for generated workload SSH key"
   type        = string
   default     = "infra-vm-workloads"
-}
-
-variable "vm_ssh_key_version" {
-  description = "Rotation version for generated workload SSH key"
-  type        = number
-  default     = 1
-}
-
-variable "vm_ssh_private_key_ssm_path" {
-  description = "SSM parameter path for generated workload SSH private key"
-  type        = string
-  default     = "/homelab/sgfdevs/infra-vm-workloads/ssh-private-key"
 }
 
 variable "vm_cpu_cores" {
