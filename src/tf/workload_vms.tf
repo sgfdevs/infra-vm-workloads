@@ -14,13 +14,11 @@ locals {
   workload_vms = {
     sgfdevs-k8s-01 = {
       node_name    = "x86-node-01"
-      vm_id        = 4201
       ipv4_address = "10.20.4.10"
       role         = "server"
     }
     sgfdevs-k8s-02 = {
       node_name    = "x86-node-02"
-      vm_id        = 4202
       ipv4_address = "10.20.4.11"
       role         = "agent"
     }
@@ -37,7 +35,6 @@ resource "proxmox_virtual_environment_vm" "workload" {
   description = "Managed by OpenTofu for sgfdevs workload cluster"
   tags        = ["managed-by-tofu", "sgfdevs", "k3s"]
   node_name   = each.value.node_name
-  vm_id       = each.value.vm_id
   pool_id     = local.proxmox_pool_id
 
   started = true

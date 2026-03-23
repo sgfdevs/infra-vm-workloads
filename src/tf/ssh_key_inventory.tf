@@ -37,7 +37,6 @@ resource "ansible_host" "workload" {
     ansible_host              = each.value.ipv4_address
     ansible_user              = local.vm_user
     node_name                 = each.value.node_name
-    vm_id                     = tostring(each.value.vm_id)
     ssm_private_key_path      = module.ssh_key.ssm_path
     proxmox_vm_role           = each.value.role
     ansible_ssh_use_ssh_agent = "false"
