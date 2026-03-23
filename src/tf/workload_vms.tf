@@ -78,6 +78,4 @@ resource "proxmox_virtual_environment_vm" "workload" {
       error_message = "No VM template file ID is configured for node '${each.value.node_name}'."
     }
   }
-
-  depends_on = [terraform_data.proxmox_connectivity_check]
 }
