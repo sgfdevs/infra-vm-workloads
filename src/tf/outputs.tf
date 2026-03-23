@@ -9,7 +9,7 @@ output "workload_vm_ids" {
 output "workload_vm_ipv4" {
   description = "Declared IPv4 addresses for workload VMs"
   value = {
-    for name, spec in var.workload_vms :
+    for name, spec in local.workload_vms :
     name => spec.ipv4_address
   }
 }
@@ -17,10 +17,10 @@ output "workload_vm_ipv4" {
 output "ansible_hosts" {
   description = "Host map for Ansible inventory generation"
   value = {
-    for name, spec in var.workload_vms :
+    for name, spec in local.workload_vms :
     name => {
       ansible_host         = spec.ipv4_address
-      ansible_user         = var.vm_user
+      ansible_user         = local.vm_user
       node_name            = spec.node_name
       vm_id                = spec.vm_id
       role                 = spec.role

@@ -1,6 +1,34 @@
 locals {
-  sgfdevs_prefix  = tonumber(split("/", var.sgfdevs_cidr)[1])
-  sgfdevs_gateway = cidrhost(var.sgfdevs_cidr, 1)
+  proxmox_pool_id               = "sgfdevs"
+  sgfdevs_cidr                  = "10.20.4.0/22"
+  vm_user                       = "admin"
+  vm_additional_ssh_public_keys = []
+  vm_cpu_cores                  = 4
+  vm_cpu_type                   = "x86-64-v2-AES"
+  vm_memory_mb                  = 8192
+  vm_disk_size_gb               = 80
+  vm_datastore_id               = "vm-data"
+  vm_cloud_init_datastore_id    = "vm-data"
+  vm_network_bridge             = "sgfdevs"
+  vm_vlan_id                    = 13
+
+  workload_vms = {
+    vm-workload-01 = {
+      node_name    = "x86-node-01"
+      vm_id        = 4201
+      ipv4_address = "10.20.4.10"
+      role         = "server"
+    }
+    vm-workload-02 = {
+      node_name    = "x86-node-02"
+      vm_id        = 4202
+      ipv4_address = "10.20.4.11"
+      role         = "agent"
+    }
+  }
+
+  sgfdevs_prefix  = tonumber(split("/", local.sgfdevs_cidr)[1])
+  sgfdevs_gateway = cidrhost(local.sgfdevs_cidr, 1)
   vm_template_file_ids = {
     x86-node-01 = "x86-node-01:iso/debian-13-generic-amd64.qcow2"
     x86-node-02 = "x86-node-02:iso/debian-13-generic-amd64.qcow2"
@@ -8,14 +36,14 @@ locals {
 }
 
 resource "proxmox_virtual_environment_vm" "workload" {
-  for_each = var.workload_vms
+  for_each = local.workload_vms
 
   name        = each.key
   description = "Managed by OpenTofu for sgfdevs workload cluster"
   tags        = ["managed-by-tofu", "sgfdevs", "k3s"]
   node_name   = each.value.node_name
   vm_id       = each.value.vm_id
-  pool_id     = var.proxmox_pool_id
+  pool_id     = local.proxmox_pool_id
 
   started = true
   on_boot = true
@@ -25,32 +53,32 @@ resource "proxmox_virtual_environment_vm" "workload" {
   }
 
   cpu {
-    cores = var.vm_cpu_cores
-    type  = var.vm_cpu_type
+    cores = local.vm_cpu_cores
+    type  = local.vm_cpu_type
   }
 
   memory {
-    dedicated = var.vm_memory_mb
-    floating  = var.vm_memory_mb
+    dedicated = local.vm_memory_mb
+    floating  = local.vm_memory_mb
   }
 
   disk {
-    datastore_id = var.vm_datastore_id
+    datastore_id = local.vm_datastore_id
     file_id      = local.vm_template_file_ids[each.value.node_name]
     interface    = "scsi0"
     iothread     = true
     discard      = "on"
-    size         = var.vm_disk_size_gb
+    size         = local.vm_disk_size_gb
   }
 
   network_device {
-    bridge  = var.vm_network_bridge
+    bridge  = local.vm_network_bridge
     model   = "virtio"
-    vlan_id = var.vm_vlan_id
+    vlan_id = local.vm_vlan_id
   }
 
   initialization {
-    datastore_id = var.vm_cloud_init_datastore_id
+    datastore_id = local.vm_cloud_init_datastore_id
 
     ip_config {
       ipv4 {
@@ -60,10 +88,10 @@ resource "proxmox_virtual_environment_vm" "workload" {
     }
 
     user_account {
-      username = var.vm_user
+      username = local.vm_user
       keys = concat(
         [module.ssh_key.public_key],
-        [for key in var.vm_additional_ssh_public_keys : trimspace(key)]
+        [for key in local.vm_additional_ssh_public_keys : trimspace(key)]
       )
     }
   }

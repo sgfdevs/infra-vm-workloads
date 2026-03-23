@@ -1,11 +1,12 @@
 locals {
+  vm_ssh_key_name             = "infra-vm-workloads"
   vm_ssh_key_version          = 1
   vm_ssh_private_key_ssm_path = "/vm-workloads/sgfdevs/infra-vm-workloads/ssh-private-key"
 }
 
 module "ssh_key" {
   source               = "git::https://github.com/glitchedmob/infra-shared.git//src/tf/modules/ssh-key?ref=main"
-  name                 = var.vm_ssh_key_name
+  name                 = local.vm_ssh_key_name
   key_version          = local.vm_ssh_key_version
   ssm_private_key_path = local.vm_ssh_private_key_ssm_path
 }
@@ -24,7 +25,7 @@ resource "ansible_group" "k3s_cluster" {
 }
 
 resource "ansible_host" "workload" {
-  for_each = var.workload_vms
+  for_each = local.workload_vms
 
   name = each.key
   groups = [
@@ -34,7 +35,7 @@ resource "ansible_host" "workload" {
 
   variables = {
     ansible_host              = each.value.ipv4_address
-    ansible_user              = var.vm_user
+    ansible_user              = local.vm_user
     node_name                 = each.value.node_name
     vm_id                     = tostring(each.value.vm_id)
     ssm_private_key_path      = module.ssh_key.ssm_path
