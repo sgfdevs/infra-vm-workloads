@@ -24,4 +24,11 @@ make tf-plan
 ## Notes
 
 - `src/tf/connectivity.tf` includes a provider connectivity check that reads Proxmox node inventory.
-- VM provisioning and CI workflow wiring are staged in follow-up commits.
+- `src/tf/workload_vms.tf` provisions two workload VMs pinned one-per-node by default.
+
+## Required Terraform Variables
+
+- `TF_VAR_proxmox_endpoint`
+- `TF_VAR_proxmox_api_token`
+- `TF_VAR_vm_template_file_id`
+- `TF_VAR_vm_user_ssh_public_key`
