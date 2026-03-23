@@ -1,7 +1,10 @@
 locals {
-  sgfdevs_prefix      = tonumber(split("/", var.sgfdevs_cidr)[1])
-  sgfdevs_gateway     = cidrhost(var.sgfdevs_cidr, 1)
-  vm_template_file_id = "x86-node-01:iso/debian-13-generic-amd64.qcow2"
+  sgfdevs_prefix  = tonumber(split("/", var.sgfdevs_cidr)[1])
+  sgfdevs_gateway = cidrhost(var.sgfdevs_cidr, 1)
+  vm_template_file_ids = {
+    x86-node-01 = "x86-node-01:iso/debian-13-generic-amd64.qcow2"
+    x86-node-02 = "x86-node-02:iso/debian-13-generic-amd64.qcow2"
+  }
 }
 
 resource "proxmox_virtual_environment_vm" "workload" {
@@ -33,7 +36,7 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   disk {
     datastore_id = var.vm_datastore_id
-    file_id      = local.vm_template_file_id
+    file_id      = local.vm_template_file_ids[each.value.node_name]
     interface    = "scsi0"
     iothread     = true
     discard      = "on"
@@ -67,6 +70,13 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   operating_system {
     type = "l26"
+  }
+
+  lifecycle {
+    precondition {
+      condition     = contains(keys(local.vm_template_file_ids), each.value.node_name)
+      error_message = "No VM template file ID is configured for node '${each.value.node_name}'."
+    }
   }
 
   depends_on = [terraform_data.proxmox_connectivity_check]

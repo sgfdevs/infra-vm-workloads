@@ -28,7 +28,7 @@ make tf-plan
 - `src/tf/ssh_key_inventory.tf` generates an SSH key, stores its private key in SSM, and publishes hosts via the Terraform Ansible provider.
 - `src/ansible/inventory.yml` uses the Terraform inventory plugin (`cloud.terraform.terraform_provider`).
 - `src/ansible/group_vars/all.yml` resolves `ssm_private_key_path` from AWS SSM at runtime.
-- VM provisioning uses a repository-defined Debian 13 cloud image ID in `src/tf/workload_vms.tf`.
+- VM provisioning uses repository-defined Debian 13 cloud image IDs keyed by node name in `src/tf/workload_vms.tf`.
 
 ## Required Terraform Variables
 
