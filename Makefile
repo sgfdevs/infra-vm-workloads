@@ -1,5 +1,5 @@
 .PHONY: help tf-init tf-plan tf-show tf-output tf-apply tf-validate tf-format tf-lint-fix \
-        ansible ansible-install ansible-inventory ansible-lint ansible-lint-fix
+        ansible ansible-shell ansible-install ansible-inventory ansible-lint ansible-lint-fix
 
 TF_DIR := src/tf
 ANSIBLE_DIR := src/ansible
@@ -21,6 +21,7 @@ help:
 	@echo "  Install deps:      make ansible-install"
 	@echo "  Run playbook:      make ansible PLAYBOOK=playbook.yml [ARGS='-v']"
 	@echo "  Inventory:         make ansible-inventory [ARGS='--list']"
+	@echo "  Shell command:     make ansible-shell HOST=host COMMAND='cmd' [ARGS='-v']"
 	@echo "  Lint:              make ansible-lint"
 	@echo "  Lint fix:          make ansible-lint-fix"
 
@@ -51,6 +52,11 @@ tf-lint-fix:
 ansible:
 	@[ -n "$(PLAYBOOK)" ] || (echo "Error: PLAYBOOK required" && exit 1)
 	@source "$(ENVRC)" && cd $(ANSIBLE_DIR) && uv run ansible-playbook playbooks/$(PLAYBOOK) $(ARGS)
+
+ansible-shell:
+	@[ -n "$(HOST)" ] || (echo "Error: HOST required (e.g., sgfdevs-k3s-01)" && exit 1)
+	@[ -n "$(COMMAND)" ] || (echo "Error: COMMAND required (e.g., 'uname -a')" && exit 1)
+	@source "$(ENVRC)" && cd $(ANSIBLE_DIR) && uv run ansible $(HOST) -m shell -a "$(COMMAND)" $(ARGS)
 
 ansible-inventory:
 	@source "$(ENVRC)" && cd $(ANSIBLE_DIR) && uv run ansible-inventory $(ARGS)
