@@ -25,7 +25,7 @@ resource "ansible_group" "k3s_cluster" {
 }
 
 resource "ansible_host" "workload" {
-  for_each = local.workload_vms
+  for_each = local.k3s_nodes
 
   name = each.key
   groups = [

@@ -11,13 +11,13 @@ locals {
   vm_cloud_init_datastore_id    = "vmdata"
   vm_network_bridge             = "sgfdevs"
 
-  workload_vms = {
-    sgfdevs-k8s-01 = {
+  k3s_nodes = {
+    sgfdevs-k3s-01 = {
       node_name    = "x86-node-01"
       ipv4_address = "10.20.4.10"
       role         = "server"
     }
-    sgfdevs-k8s-02 = {
+    sgfdevs-k3s-02 = {
       node_name    = "x86-node-02"
       ipv4_address = "10.20.4.11"
       role         = "agent"
@@ -29,7 +29,7 @@ locals {
 }
 
 resource "proxmox_virtual_environment_vm" "workload" {
-  for_each = local.workload_vms
+  for_each = local.k3s_nodes
 
   name        = each.key
   description = "Managed by OpenTofu for sgfdevs workload cluster"
