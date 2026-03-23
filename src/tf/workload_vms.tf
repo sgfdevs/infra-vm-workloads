@@ -10,7 +10,6 @@ locals {
   vm_datastore_id               = "vmdata"
   vm_cloud_init_datastore_id    = "vmdata"
   vm_network_bridge             = "sgfdevs"
-  vm_vlan_id                    = 13
 
   workload_vms = {
     vm-workload-01 = {
@@ -72,9 +71,8 @@ resource "proxmox_virtual_environment_vm" "workload" {
   }
 
   network_device {
-    bridge  = local.vm_network_bridge
-    model   = "virtio"
-    vlan_id = local.vm_vlan_id
+    bridge = local.vm_network_bridge
+    model  = "virtio"
   }
 
   initialization {
