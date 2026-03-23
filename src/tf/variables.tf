@@ -136,11 +136,6 @@ variable "vm_datastore_id" {
   default     = "vm-data"
 }
 
-variable "vm_template_file_id" {
-  description = "Proxmox file identifier for cloud image/template"
-  type        = string
-}
-
 variable "vm_cloud_init_datastore_id" {
   description = "Datastore for cloud-init disk"
   type        = string

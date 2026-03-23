@@ -1,6 +1,7 @@
 locals {
-  sgfdevs_prefix  = tonumber(split("/", var.sgfdevs_cidr)[1])
-  sgfdevs_gateway = cidrhost(var.sgfdevs_cidr, 1)
+  sgfdevs_prefix      = tonumber(split("/", var.sgfdevs_cidr)[1])
+  sgfdevs_gateway     = cidrhost(var.sgfdevs_cidr, 1)
+  vm_template_file_id = "x86-node-01:iso/debian-13-generic-amd64.qcow2"
 }
 
 resource "proxmox_virtual_environment_vm" "workload" {
@@ -32,7 +33,7 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   disk {
     datastore_id = var.vm_datastore_id
-    file_id      = var.vm_template_file_id
+    file_id      = local.vm_template_file_id
     interface    = "scsi0"
     iothread     = true
     discard      = "on"

@@ -27,12 +27,13 @@ make tf-plan
 - `src/tf/workload_vms.tf` provisions two workload VMs pinned one-per-node by default.
 - `src/tf/ssh_key_inventory.tf` generates an SSH key, stores its private key in SSM, and publishes hosts via the Terraform Ansible provider.
 - `src/ansible/inventory.yml` uses the Terraform inventory plugin (`cloud.terraform.terraform_provider`).
+- `src/ansible/group_vars/all.yml` resolves `ssm_private_key_path` from AWS SSM at runtime.
+- VM provisioning uses a repository-defined Debian 13 cloud image ID in `src/tf/workload_vms.tf`.
 
 ## Required Terraform Variables
 
 - `TF_VAR_proxmox_endpoint`
 - `TF_VAR_proxmox_api_token`
-- `TF_VAR_vm_template_file_id`
 
 ## GitHub Workflows
 
@@ -47,4 +48,3 @@ make tf-plan
 - `OUTPUT_ENCRYPTION_KEY`
 - `TF_VAR_proxmox_endpoint`
 - `TF_VAR_proxmox_api_token`
-- `TF_VAR_vm_template_file_id`
