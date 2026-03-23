@@ -1,10 +1,19 @@
 locals {
-  sgfdevs_prefix  = tonumber(split("/", var.sgfdevs_cidr)[1])
-  sgfdevs_gateway = cidrhost(var.sgfdevs_cidr, 1)
-  vm_template_file_ids = {
-    x86-node-01 = "x86-node-01:iso/debian-13-generic-amd64.qcow2"
-    x86-node-02 = "x86-node-02:iso/debian-13-generic-amd64.qcow2"
-  }
+  sgfdevs_prefix        = tonumber(split("/", var.sgfdevs_cidr)[1])
+  sgfdevs_gateway       = cidrhost(var.sgfdevs_cidr, 1)
+  workload_node_names   = toset([for vm in values(var.workload_vms) : vm.node_name])
+  vm_template_file_name = "debian-13-generic-amd64.qcow2"
+  vm_template_image_url = "https://cloud.debian.org/images/cloud/trixie/latest/debian-13-generic-amd64.qcow2"
+}
+
+resource "proxmox_virtual_environment_download_file" "debian13_cloud_image" {
+  for_each = local.workload_node_names
+
+  node_name    = each.value
+  datastore_id = "iso"
+  content_type = "iso"
+  file_name    = local.vm_template_file_name
+  url          = local.vm_template_image_url
 }
 
 resource "proxmox_virtual_environment_vm" "workload" {
@@ -36,7 +45,7 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   disk {
     datastore_id = var.vm_datastore_id
-    file_id      = local.vm_template_file_ids[each.value.node_name]
+    file_id      = proxmox_virtual_environment_download_file.debian13_cloud_image[each.value.node_name].id
     interface    = "scsi0"
     iothread     = true
     discard      = "on"
@@ -70,13 +79,6 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   operating_system {
     type = "l26"
-  }
-
-  lifecycle {
-    precondition {
-      condition     = contains(keys(local.vm_template_file_ids), each.value.node_name)
-      error_message = "No VM template file ID is configured for node '${each.value.node_name}'."
-    }
   }
 
   depends_on = [terraform_data.proxmox_connectivity_check]
