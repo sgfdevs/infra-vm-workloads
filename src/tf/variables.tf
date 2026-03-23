@@ -1,14 +1,6 @@
 variable "proxmox_endpoint" {
   description = "Proxmox API endpoint URL (for example https://x86-node-01:8006/)"
   type        = string
-
-  validation {
-    condition = (
-      startswith(var.proxmox_endpoint, "https://") &&
-      !can(regex("/api2/json/?$", var.proxmox_endpoint))
-    )
-    error_message = "proxmox_endpoint must be an https URL without /api2/json, for example https://x86-node-01:8006/"
-  }
 }
 
 variable "proxmox_api_token" {

@@ -28,9 +28,9 @@ locals {
 
   sgfdevs_prefix  = tonumber(split("/", local.sgfdevs_cidr)[1])
   sgfdevs_gateway = cidrhost(local.sgfdevs_cidr, 1)
-  vm_template_file_ids = {
-    x86-node-01 = "x86-node-01:iso/debian-13-generic-amd64.qcow2"
-    x86-node-02 = "x86-node-02:iso/debian-13-generic-amd64.qcow2"
+  vm_image_import_from_ids = {
+    x86-node-01 = "x86-node-01:import/debian-13-generic-amd64.qcow2"
+    x86-node-02 = "x86-node-02:import/debian-13-generic-amd64.qcow2"
   }
 }
 
@@ -63,7 +63,7 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   disk {
     datastore_id = local.vm_datastore_id
-    file_id      = local.vm_template_file_ids[each.value.node_name]
+    import_from  = local.vm_image_import_from_ids[each.value.node_name]
     interface    = "scsi0"
     iothread     = true
     discard      = "on"
@@ -100,8 +100,8 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   lifecycle {
     precondition {
-      condition     = contains(keys(local.vm_template_file_ids), each.value.node_name)
-      error_message = "No VM template file ID is configured for node '${each.value.node_name}'."
+      condition     = contains(keys(local.vm_image_import_from_ids), each.value.node_name)
+      error_message = "No import image ID is configured for node '${each.value.node_name}'."
     }
   }
 }
