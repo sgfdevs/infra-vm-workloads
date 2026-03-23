@@ -28,10 +28,6 @@ locals {
 
   sgfdevs_prefix  = tonumber(split("/", local.sgfdevs_cidr)[1])
   sgfdevs_gateway = cidrhost(local.sgfdevs_cidr, 1)
-  vm_image_import_from_ids = {
-    x86-node-01 = "x86-node-01:import/debian-13-generic-amd64.qcow2"
-    x86-node-02 = "x86-node-02:import/debian-13-generic-amd64.qcow2"
-  }
 }
 
 resource "proxmox_virtual_environment_vm" "workload" {
@@ -63,9 +59,8 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   disk {
     datastore_id = local.vm_datastore_id
-    import_from  = local.vm_image_import_from_ids[each.value.node_name]
+    import_from  = "local:import/debian-13-generic-amd64.qcow2"
     interface    = "scsi0"
-    iothread     = true
     discard      = "on"
     size         = local.vm_disk_size_gb
   }
@@ -96,12 +91,5 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   operating_system {
     type = "l26"
-  }
-
-  lifecycle {
-    precondition {
-      condition     = contains(keys(local.vm_image_import_from_ids), each.value.node_name)
-      error_message = "No import image ID is configured for node '${each.value.node_name}'."
-    }
   }
 }
