@@ -20,7 +20,7 @@ locals {
     sgfdevs-k3s-02 = {
       node_name    = "x86-node-02"
       ipv4_address = "10.20.4.11"
-      role         = "agent"
+      role         = "server"
     }
   }
 
