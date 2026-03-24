@@ -24,8 +24,9 @@ locals {
     }
   }
 
-  sgfdevs_prefix  = tonumber(split("/", local.sgfdevs_cidr)[1])
-  sgfdevs_gateway = cidrhost(local.sgfdevs_cidr, 1)
+  sgfdevs_prefix     = tonumber(split("/", local.sgfdevs_cidr)[1])
+  sgfdevs_gateway    = cidrhost(local.sgfdevs_cidr, 1)
+  sgfdevs_dns_domain = "local"
 }
 
 resource "proxmox_virtual_environment_vm" "workload" {
@@ -65,6 +66,11 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   initialization {
     datastore_id = local.vm_cloud_init_datastore_id
+
+    dns {
+      domain  = local.sgfdevs_dns_domain
+      servers = [local.sgfdevs_gateway]
+    }
 
     ip_config {
       ipv4 {
