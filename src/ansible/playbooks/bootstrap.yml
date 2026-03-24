@@ -4,7 +4,6 @@
   become: true
   gather_facts: true
   vars:
-    k3s_version: v1.35.1+k3s1
     server_group: k3s_servers
     agent_group: k3s_agents
     api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"
@@ -16,7 +15,6 @@
   become: true
   gather_facts: true
   vars:
-    k3s_version: v1.35.1+k3s1
     server_group: k3s_servers
     agent_group: k3s_agents
     api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"
@@ -29,7 +27,6 @@
   become: true
   gather_facts: true
   vars:
-    k3s_version: v1.35.1+k3s1
     server_group: k3s_servers
     agent_group: k3s_agents
     api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"

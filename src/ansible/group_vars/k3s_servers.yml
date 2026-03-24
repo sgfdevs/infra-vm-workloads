@@ -1,0 +1,2 @@
+---
+extra_server_args: "--cluster-cidr={{ cluster_cidr }} --service-cidr={{ service_cidr }}"
