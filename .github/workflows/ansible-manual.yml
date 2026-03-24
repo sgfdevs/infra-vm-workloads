@@ -5,8 +5,11 @@ on:
     inputs:
       playbook:
         description: Playbook filename under src/ansible/playbooks/
-        type: string
-        default: bootstrap.yml
+        required: true
+        type: choice
+        options:
+          - bootstrap.yml
+          - apply.yml
       initialize-terraform:
         description: Initialize Terraform first
         type: boolean
