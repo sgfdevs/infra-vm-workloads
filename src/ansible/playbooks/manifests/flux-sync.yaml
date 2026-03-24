@@ -1,0 +1,26 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: infra-k8s-apps
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: ssh://git@github.com/sgfdevs/infra-k8s-apps.git
+  ref:
+    branch: main
+  secretRef:
+    name: flux-git-auth
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: infra-k8s-apps
+  namespace: flux-system
+spec:
+  interval: 1m
+  path: ./src/k8s/flux
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: infra-k8s-apps
