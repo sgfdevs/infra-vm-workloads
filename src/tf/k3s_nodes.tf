@@ -24,6 +24,11 @@ locals {
     }
   }
 
+  guest_agent_vendor_data_file_ids = {
+    x86-node-01 = "local:snippets/guest-agent-vendor-data-v1.yaml"
+    x86-node-02 = "local:snippets/guest-agent-vendor-data-v1.yaml"
+  }
+
   sgfdevs_prefix     = tonumber(split("/", local.sgfdevs_cidr)[1])
   sgfdevs_gateway    = cidrhost(local.sgfdevs_cidr, 1)
   sgfdevs_dns_domain = "local"
@@ -40,6 +45,12 @@ resource "proxmox_virtual_environment_vm" "workload" {
 
   started = true
   on_boot = true
+
+  agent {
+    enabled = true
+    trim    = true
+    type    = "virtio"
+  }
 
   cpu {
     cores = local.vm_cpu_cores
@@ -65,7 +76,8 @@ resource "proxmox_virtual_environment_vm" "workload" {
   }
 
   initialization {
-    datastore_id = local.vm_cloud_init_datastore_id
+    datastore_id        = local.vm_cloud_init_datastore_id
+    vendor_data_file_id = local.guest_agent_vendor_data_file_ids[each.value.node_name]
 
     dns {
       domain  = local.sgfdevs_dns_domain
