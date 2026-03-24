@@ -24,12 +24,11 @@ make tf-plan
 ## Notes
 
 - `src/tf/connectivity.tf` includes a provider connectivity check that reads Proxmox node inventory.
-- `src/tf/k3s_nodes.tf` provisions two workload VMs pinned one-per-node by default.
-- `src/tf/ssh_key_inventory.tf` generates node SSH and Flux deploy keys, stores private keys in SSM, and publishes hosts via the Terraform Ansible provider.
+- `src/tf/k3s.tf` contains all Terraform resources for the workload K3s cluster, including VM definitions, SSH key material, and Terraform Ansible inventory resources.
 - `src/ansible/inventory.yml` uses the Terraform inventory plugin (`cloud.terraform.terraform_provider`).
 - `src/ansible/group_vars/all.yml` resolves `ssm_private_key_path` from AWS SSM at runtime.
 - `src/ansible/playbooks/apply.yml` bootstraps Flux and GitHub notifications for `sgfdevs/infra-k8s-apps`.
-- VM provisioning references Debian 13 image IDs keyed by node name in `src/tf/k3s_nodes.tf`.
+- VM provisioning uses the shared `infra-shared` `proxmox-vm` module with `os_id = "debian13"` in `src/tf/k3s.tf`.
 
 ## Required Terraform Variables
 

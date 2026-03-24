@@ -1,7 +1,7 @@
 output "workload_vm_ids" {
   description = "Proxmox VM IDs for workload instances"
   value = {
-    for name, vm in proxmox_virtual_environment_vm.workload :
+    for name, vm in module.k3s_vm :
     name => vm.vm_id
   }
 }
@@ -23,7 +23,7 @@ output "flux_git_public_key" {
 
 output "flux_git_public_key_ssm_path" {
   description = "SSM path for Flux Git deploy public key"
-  value       = local.flux_git_public_key_path
+  value       = module.flux_deploy_key.ssm_public_key_path
 }
 
 output "flux_github_status_token_ssm_path" {
