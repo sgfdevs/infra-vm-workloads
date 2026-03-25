@@ -1,56 +1,32 @@
 # infra-vm-workloads
 
-OpenTofu + Ansible automation for sgfdevs workload VMs on Proxmox.
+Provisions SGF Devs workload VMs on Proxmox and bootstraps the k3s cluster and Flux baseline used to deploy Kubernetes manifests.
 
-## Layout
+## Scope
+- Owns: OpenTofu resources for workload VMs, SSH/Flux key material, and SSM parameters used by cluster automation.
+- Owns: Ansible bootstrap and apply flow for k3s installation and Flux baseline manifests.
 
-```text
-.
-├── .github/workflows/
-├── src/tf/
-├── src/ansible/
-├── Makefile
-└── .envrc.example
-```
+## Structure
+- `src/tf/`: Provisions Proxmox VMs and emits Terraform-backed Ansible inventory data.
+- `src/ansible/`: Installs k3s (`bootstrap.yml`) and applies Flux/bootstrap manifests (`apply.yml`).
+- `.github/workflows/`: Terraform plan/apply and Ansible lint/manual execution workflows.
 
-## Quickstart
-
+## Run
 ```bash
-cp .envrc.example .envrc
+make help
 make tf-init
 make tf-plan
+make tf-apply
+make ansible-install
+make ansible PLAYBOOK=bootstrap.yml
+make ansible PLAYBOOK=apply.yml
 ```
 
-## Notes
+## Operational order
+- Apply Terraform first to create VMs and write required SSM parameter paths.
+- Run `bootstrap.yml` before `apply.yml` so k3s is present before Flux/bootstrap manifests are applied.
+- Add `flux_git_public_key` output as a read-only deploy key in [`sgfdevs/infra-k8s-apps`](https://github.com/sgfdevs/infra-k8s-apps).
+- Update the SSM parameter at `flux_github_status_token_ssm_path` with a valid GitHub token for Flux notification status updates.
 
-- `src/tf/connectivity.tf` includes a provider connectivity check that reads Proxmox node inventory.
-- `src/tf/k3s.tf` contains all Terraform resources for the workload K3s cluster, including VM definitions, SSH key material, and Terraform Ansible inventory resources.
-- `src/ansible/inventory.yml` uses the Terraform inventory plugin (`cloud.terraform.terraform_provider`).
-- `src/ansible/group_vars/all.yml` resolves `ssm_private_key_path` from AWS SSM at runtime.
-- `src/ansible/playbooks/apply.yml` bootstraps Flux and GitHub notifications for `sgfdevs/infra-k8s-apps`.
-- VM provisioning uses the shared `infra-shared` `proxmox-vm` module with `os_id = "debian13"` in `src/tf/k3s.tf`.
-
-## Required Terraform Variables
-
-- `TF_VAR_proxmox_endpoint`
-- `TF_VAR_proxmox_api_token`
-
-## GitHub Workflows
-
-- `tf-plan.yml`: PR validation for Terraform.
-- `tf-plan-apply.yml`: apply on `main` and optional manual plan-only runs.
-- `ansible-lint.yml`: lint `src/ansible`.
-- `ansible-manual.yml`: manual playbook execution.
-
-## Required GitHub Secrets
-
-- `AWS_ROLE_ARN`
-- `OUTPUT_ENCRYPTION_KEY`
-- `TF_VAR_proxmox_endpoint`
-- `TF_VAR_proxmox_api_token`
-
-## Flux Bootstrap Notes
-
-- Run `bootstrap.yml` first to install K3s, then run `apply.yml` to bootstrap Flux.
-- After Terraform apply, add `flux_git_public_key` output to `sgfdevs/infra-k8s-apps` as a read-only deploy key.
-- Update SSM parameter at `flux_github_status_token_ssm_path` with a valid GitHub token so Flux notifications can post status updates.
+## Operating constraints
+- This repo mixes infrastructure provisioning and cluster bootstrap; run Terraform and Ansible steps intentionally and in order.
