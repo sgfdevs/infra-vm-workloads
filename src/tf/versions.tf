@@ -10,6 +10,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 6.33"
     }
+    b2 = {
+      source  = "Backblaze/b2"
+      version = "~> 0.12"
+    }
     proxmox = {
       source  = "bpg/proxmox"
       version = "~> 0.97"
