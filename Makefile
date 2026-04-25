@@ -56,8 +56,7 @@ tf-providers-lock:
 		-platform=darwin_arm64 \
 		-platform=linux_amd64 \
 		-platform=linux_arm64 \
-		-platform=windows_amd64 \
-		-platform=windows_arm64
+		-platform=windows_amd64
 
 ansible:
 	@[ -n "$(PLAYBOOK)" ] || (echo "Error: PLAYBOOK required" && exit 1)
