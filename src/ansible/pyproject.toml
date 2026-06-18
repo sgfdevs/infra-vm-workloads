@@ -3,11 +3,11 @@ name = "infra-vm-workloads-ansible"
 version = "0.1.0"
 requires-python = ">=3.14"
 dependencies = [
-    "ansible>=13.0.0",
-    "ansible-lint>=26.0.0",
-    "boto3>=1.40.0",
-    "botocore>=1.40.0",
-    "kubernetes>=34.0.0",
+    "ansible>=14.0.0",
+    "ansible-lint>=26.4.0",
+    "boto3>=1.43.0",
+    "botocore>=1.43.0",
+    "kubernetes>=36.0.0",
 ]
 
 [tool.uv]
