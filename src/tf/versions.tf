@@ -4,7 +4,7 @@ terraform {
   required_providers {
     ansible = {
       source  = "ansible/ansible"
-      version = "~> 1.3"
+      version = "~> 1.4"
     }
     aws = {
       source  = "hashicorp/aws"
@@ -16,7 +16,7 @@ terraform {
     }
     proxmox = {
       source  = "bpg/proxmox"
-      version = "~> 0.97"
+      version = "~> 0.106"
     }
     writeonly = {
       source  = "glitchedmob/writeonly"

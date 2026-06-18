@@ -3,7 +3,7 @@
 
 provider "registry.opentofu.org/ansible/ansible" {
   version     = "1.4.0"
-  constraints = "~> 1.3"
+  constraints = "~> 1.4"
   hashes = [
     "h1:3BLWpuJUFvdjHr5qKDhzCCSfpMkYy/itbXgDWc3wkFA=",
     "h1:6C8Fo1tBd8GukVQqz9lCzETOb/zW6A2k3wCVlMjAp/E=",
@@ -54,7 +54,7 @@ provider "registry.opentofu.org/backblaze/b2" {
 
 provider "registry.opentofu.org/bpg/proxmox" {
   version     = "0.106.0"
-  constraints = "~> 0.97"
+  constraints = "~> 0.106"
   hashes = [
     "h1:2lziY2aIqrpjAKAtYnDJ2Q06MlTaa512webPRs/yk4Y=",
     "h1:CnUVTBB9ZlJRH9xhyxPIAY++4gSRqMeLMZokzgN1V2A=",
