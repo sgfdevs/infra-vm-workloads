@@ -8,7 +8,7 @@ terraform {
     }
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 6.33"
+      version = "~> 6.53"
     }
     b2 = {
       source  = "Backblaze/b2"
@@ -16,7 +16,7 @@ terraform {
     }
     proxmox = {
       source  = "bpg/proxmox"
-      version = "~> 0.106"
+      version = "~> 0.111"
     }
     writeonly = {
       source  = "glitchedmob/writeonly"
