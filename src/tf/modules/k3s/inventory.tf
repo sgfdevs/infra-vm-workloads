@@ -27,7 +27,7 @@ resource "ansible_host" "workload" {
     ssm_seaweedfs_s3_admin_secret_key_path = aws_ssm_parameter.seaweedfs_secret_key["admin"].name
     ssm_seaweedfs_s3_obs_access_key_path   = aws_ssm_parameter.seaweedfs_access_key["observability"].name
     ssm_seaweedfs_s3_obs_secret_key_path   = aws_ssm_parameter.seaweedfs_secret_key["observability"].name
-    data_disk_interface                    = module.k3s_vm[each.key].data_disks[module.k3s_data_owner[each.key].disk.serial].interface
+    data_disk_serial                       = module.k3s_data_owner[each.key].disk.serial
     proxmox_vm_role                        = each.value.role
     ansible_ssh_use_ssh_agent              = "false"
   }
