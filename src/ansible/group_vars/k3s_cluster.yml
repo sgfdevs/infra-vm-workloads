@@ -2,5 +2,3 @@
 k3s_version: v1.36.2+k3s1
 cluster_cidr: 10.52.0.0/16
 service_cidr: 10.53.0.0/16
-github_oauth_client_id: "CHANGEME"
-grafana_github_oauth_client_id: "CHANGEME"

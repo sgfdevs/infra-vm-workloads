@@ -18,6 +18,10 @@ terraform {
       source  = "bpg/proxmox"
       version = "~> 0.111"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.9"
+    }
     writeonly = {
       source  = "glitchedmob/writeonly"
       version = "~> 1.0"

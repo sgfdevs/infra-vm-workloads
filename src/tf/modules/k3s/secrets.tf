@@ -19,6 +19,13 @@ resource "aws_ssm_parameter" "openbao_unseal_key" {
   type             = "SecureString"
   value_wo         = ephemeral.random_bytes.openbao_unseal.base64
   value_wo_version = 1
+  lifecycle { prevent_destroy = true }
+}
+
+resource "aws_ssm_parameter" "dex_github_oauth_client_id" {
+  name  = "${local.ssm_key_prefix}/dex-github-oauth-client-id"
+  type  = "String"
+  value = var.dex_github_oauth_client_id
 }
 
 resource "aws_ssm_parameter" "github_oauth_client_secret" {
@@ -40,6 +47,7 @@ resource "aws_ssm_parameter" "dex_client_secrets" {
   type             = "SecureString"
   value_wo         = jsonencode({ for name, password in ephemeral.random_password.dex_client : "${name}ClientSecret" => password.result })
   value_wo_version = 1
+  lifecycle { prevent_destroy = true }
 }
 
 ephemeral "random_password" "oauth2_proxy_cookie" {
@@ -51,6 +59,7 @@ resource "aws_ssm_parameter" "oauth2_proxy_cookie_secret" {
   type             = "SecureString"
   value_wo         = ephemeral.random_password.oauth2_proxy_cookie.result
   value_wo_version = 1
+  lifecycle { prevent_destroy = true }
 }
 
 ephemeral "random_password" "seaweedfs_secret_key" {
@@ -72,4 +81,5 @@ resource "aws_ssm_parameter" "seaweedfs_secret_key" {
   type             = "SecureString"
   value_wo         = ephemeral.random_password.seaweedfs_secret_key[each.key].result
   value_wo_version = 1
+  lifecycle { prevent_destroy = true }
 }
