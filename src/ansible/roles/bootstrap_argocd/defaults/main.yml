@@ -1,0 +1,5 @@
+---
+bootstrap_argocd_poll_timeout: 10s
+bootstrap_argocd_health_retries: 120
+bootstrap_argocd_health_delay: 10
+bootstrap_argocd_repo_url: ssh://git@github.com/sgfdevs/infra-k8s-apps.git

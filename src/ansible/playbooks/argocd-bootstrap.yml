@@ -1,0 +1,7 @@
+---
+- name: Bootstrap Argo CD and baseline manifests
+  hosts: k3s_servers
+  become: true
+  gather_facts: true
+  roles:
+    - bootstrap_argocd

@@ -8,8 +8,12 @@
     agent_group: k3s_agents
     api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"
   roles:
-    - k3s.orchestration.prereq
-
+    - role: prepare_nodes
+      tags: prepare_nodes
+    - role: prepare_storage
+      tags: prepare_storage
+    - role: k3s.orchestration.prereq
+      tags: k3s_prereq
 - name: Install K3s server nodes
   hosts: k3s_servers
   become: true
@@ -20,15 +24,12 @@
     api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"
     cluster_context: sgfdevs-k3s
   roles:
-    - k3s.orchestration.k3s_server
-
-- name: Install K3s agent nodes
-  hosts: k3s_agents
+    - role: k3s.orchestration.k3s_server
+      tags: k3s_server
+- name: Bootstrap Argo CD and baseline manifests
+  hosts: k3s_servers
   become: true
   gather_facts: true
-  vars:
-    server_group: k3s_servers
-    agent_group: k3s_agents
-    api_endpoint: "{{ hostvars[groups[server_group][0]].ansible_host | default(groups[server_group][0]) }}"
   roles:
-    - k3s.orchestration.k3s_agent
+    - role: bootstrap_argocd
+      tags: bootstrap_argocd

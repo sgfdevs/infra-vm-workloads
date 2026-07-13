@@ -1,0 +1,19 @@
+---
+- name: Configure K3s node sysctls
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-k3s.conf
+  loop: "{{ prepare_nodes_sysctls | dict2items }}"
+- name: Install K3s node packages
+  ansible.builtin.apt:
+    name: "{{ prepare_nodes_packages }}"
+    state: present
+    update_cache: true
+- name: Start and enable iscsid service
+  ansible.builtin.systemd:
+    name: iscsid
+    state: started
+    enabled: true

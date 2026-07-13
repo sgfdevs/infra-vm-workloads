@@ -1,0 +1,55 @@
+---
+- name: Install storage management packages
+  ansible.builtin.apt:
+    name: [cryptsetup, e2fsprogs, parted]
+    state: present
+    update_cache: true
+- name: Create persistent data partition
+  community.general.parted:
+    device: "{{ prepare_storage_device }}"
+    label: gpt
+    name: k8s-data
+    number: 1
+    part_start: 1MiB
+    part_end: 100%
+    state: present
+- name: Wait for udev to process the data partition
+  ansible.builtin.command: udevadm settle
+  changed_when: false
+- name: Create persistent data filesystem
+  community.general.filesystem:
+    dev: "{{ prepare_storage_partition }}"
+    fstype: ext4
+    force: false
+    state: present
+- name: Mount persistent data filesystem
+  ansible.posix.mount:
+    path: "{{ prepare_storage_mount_path }}"
+    src: "{{ prepare_storage_partition }}"
+    fstype: ext4
+    opts: defaults
+    dump: "0"
+    passno: "2"
+    state: mounted
+- name: Create Kubernetes storage directories
+  ansible.builtin.file:
+    path: "{{ prepare_storage_mount_path }}/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ prepare_storage_directories }}"
+- name: Load device-mapper encryption module
+  community.general.modprobe:
+    name: dm_crypt
+    state: present
+    persistent: present
+- name: Expose Longhorn data directory as a mount point
+  ansible.posix.mount:
+    path: "{{ prepare_storage_mount_path }}/longhorn"
+    src: "{{ prepare_storage_mount_path }}/longhorn"
+    fstype: none
+    opts: bind
+    dump: "0"
+    passno: "0"
+    state: mounted

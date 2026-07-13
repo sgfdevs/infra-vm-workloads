@@ -1,0 +1,5 @@
+---
+prepare_storage_device: "/dev/disk/by-id/scsi-0QEMU_QEMU_HARDDISK_drive-{{ data_disk_interface }}"
+prepare_storage_partition: "{{ prepare_storage_device }}-part1"
+prepare_storage_mount_path: /mnt/k8s-data
+prepare_storage_directories: [local-path, longhorn]

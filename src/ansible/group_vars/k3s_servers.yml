@@ -1,2 +1,5 @@
 ---
-extra_server_args: "--cluster-cidr={{ cluster_cidr }} --service-cidr={{ service_cidr }}"
+extra_server_args: >-
+  --cluster-cidr={{ cluster_cidr }}
+  --service-cidr={{ service_cidr }}
+  --default-local-storage-path=/mnt/k8s-data/local-path

@@ -1,0 +1,4 @@
+---
+server_config_yaml: |
+  node-label:
+    - "cpu-microarchitecture=x86-64-v2"

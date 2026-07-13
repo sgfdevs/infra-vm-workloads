@@ -1,0 +1,78 @@
+---
+- name: Fetch bootstrap secrets from SSM
+  ansible.builtin.set_fact:
+    bootstrap_argocd_git_key: "{{ lookup('amazon.aws.aws_ssm', ssm_git_deploy_private_key_path) }}"
+    bootstrap_argocd_eso_id: "{{ lookup('amazon.aws.aws_ssm', ssm_eso_access_key_id_path) }}"
+    bootstrap_argocd_eso_key: "{{ lookup('amazon.aws.aws_ssm', ssm_eso_secret_access_key_path) }}"
+    bootstrap_argocd_s3_admin_id: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_admin_access_key_path) }}"
+    bootstrap_argocd_s3_admin_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_admin_secret_key_path) }}"
+    bootstrap_argocd_s3_obs_id: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_obs_access_key_path) }}"
+    bootstrap_argocd_s3_obs_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_obs_secret_key_path) }}"
+  no_log: true
+  run_once: true
+- name: Fetch GitHub SSH known hosts
+  ansible.builtin.command: ssh-keyscan -t ed25519 github.com
+  register: bootstrap_argocd_known_hosts
+  changed_when: false
+  delegate_to: localhost
+  become: false
+  run_once: true
+- name: Apply required namespaces
+  ansible.builtin.command: kubectl apply -f -
+  args:
+    stdin: "{{ lookup('file', role_path ~ '/files/namespaces.yaml') }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_namespaces
+  changed_when: "'created' in bootstrap_argocd_namespaces.stdout or 'configured' in bootstrap_argocd_namespaces.stdout"
+  run_once: true
+- name: Install Argo CD
+  ansible.builtin.command: kubectl apply --server-side -n argocd -f -
+  args:
+    stdin: "{{ lookup('url', 'https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.5/manifests/ha/install.yaml', split_lines=False) }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_install
+  changed_when: >-
+    'created' in bootstrap_argocd_install.stdout or
+    'configured' in bootstrap_argocd_install.stdout or
+    'serverside-applied' in bootstrap_argocd_install.stdout
+  run_once: true
+- name: Wait for Argo CD server
+  ansible.builtin.command: >-
+    kubectl rollout status deployment/argocd-server -n argocd
+    --timeout={{ bootstrap_argocd_poll_timeout }}
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_ready
+  changed_when: false
+  retries: "{{ bootstrap_argocd_health_retries }}"
+  delay: "{{ bootstrap_argocd_health_delay }}"
+  until: bootstrap_argocd_ready.rc == 0
+  run_once: true
+- name: Seed Argo CD and external credentials
+  ansible.builtin.command: kubectl apply -f -
+  args:
+    stdin: "{{ lookup('template', role_path ~ '/templates/' ~ item) }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_seed
+  changed_when: "'created' in bootstrap_argocd_seed.stdout or 'configured' in bootstrap_argocd_seed.stdout"
+  no_log: true
+  loop: [repository.yaml.j2, aws-credentials.yaml.j2, seaweedfs-credentials.yaml.j2]
+  run_once: true
+- name: Apply staged Argo CD roots
+  ansible.builtin.command: kubectl apply -f -
+  args:
+    stdin: "{{ lookup('template', role_path ~ '/templates/root-application.yaml.j2') }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_root
+  changed_when: "'created' in bootstrap_argocd_root.stdout or 'configured' in bootstrap_argocd_root.stdout"
+  loop:
+    - {name: projects, path: src/k8s/bootstrap/projects}
+    - {name: base-operators, path: src/k8s/bootstrap/operators/base}
+    - {name: dependent-operators, path: src/k8s/bootstrap/operators/dependent}
+    - {name: platform, path: src/k8s/platform}
+    - {name: apps, path: src/k8s/apps}
+  run_once: true

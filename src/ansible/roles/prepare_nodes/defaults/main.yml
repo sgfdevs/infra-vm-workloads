@@ -1,0 +1,5 @@
+---
+prepare_nodes_packages: [nfs-common, open-iscsi]
+prepare_nodes_sysctls:
+  fs.inotify.max_user_instances: "8192"
+  fs.inotify.max_user_watches: "524288"
