@@ -4,6 +4,26 @@
     name: [cryptsetup, e2fsprogs, parted]
     state: present
     update_cache: true
+- name: Check persistent data device
+  ansible.builtin.stat:
+    path: "{{ prepare_storage_device }}"
+    follow: true
+  register: prepare_storage_device_stat
+- name: Require persistent data device
+  ansible.builtin.assert:
+    that: prepare_storage_device_stat.stat.exists
+    fail_msg: "Persistent data device {{ prepare_storage_device }} does not exist"
+- name: Read persistent data device serial
+  ansible.builtin.command:
+    argv: [lsblk, --nodeps, --noheadings, --output, SERIAL, "{{ prepare_storage_device }}"]
+  changed_when: false
+  register: prepare_storage_device_serial
+- name: Verify persistent data device serial
+  ansible.builtin.assert:
+    that: prepare_storage_device_serial.stdout | trim == data_disk_serial
+    fail_msg: >-
+      Refusing to partition {{ prepare_storage_device }}: expected serial
+      {{ data_disk_serial }}, found {{ prepare_storage_device_serial.stdout | trim }}
 - name: Create persistent data partition
   community.general.parted:
     device: "{{ prepare_storage_device }}"
