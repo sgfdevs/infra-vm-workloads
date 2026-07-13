@@ -1,0 +1,6 @@
+---
+- name: Apply apps root
+  ansible.builtin.include_tasks: apply-root.yml
+  vars:
+    bootstrap_argocd_root_name: apps
+    bootstrap_argocd_root_path: src/k8s/apps

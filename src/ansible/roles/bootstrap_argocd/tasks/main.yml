@@ -38,9 +38,27 @@
     'configured' in bootstrap_argocd_install.stdout or
     'serverside-applied' in bootstrap_argocd_install.stdout
   run_once: true
-- name: Wait for Argo CD server
+- name: Wait for Argo CD CRDs
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - wait
+      - --for=condition=Established
+      - "--timeout={{ bootstrap_argocd_poll_timeout }}"
+      - "crd/{{ item }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_crd_ready
+  changed_when: false
+  failed_when: false
+  retries: "{{ bootstrap_argocd_health_retries }}"
+  delay: "{{ bootstrap_argocd_health_delay }}"
+  until: bootstrap_argocd_crd_ready.rc == 0
+  loop: "{{ bootstrap_argocd_required_crds }}"
+  run_once: true
+- name: Wait for required Argo CD workloads
   ansible.builtin.command: >-
-    kubectl rollout status deployment/argocd-server -n argocd
+    kubectl rollout status {{ item }} -n argocd
     --timeout={{ bootstrap_argocd_poll_timeout }}
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
@@ -49,6 +67,7 @@
   retries: "{{ bootstrap_argocd_health_retries }}"
   delay: "{{ bootstrap_argocd_health_delay }}"
   until: bootstrap_argocd_ready.rc == 0
+  loop: "{{ bootstrap_argocd_required_workloads }}"
   run_once: true
 - name: Seed Argo CD and external credentials
   ansible.builtin.command: kubectl apply -f -
@@ -61,18 +80,11 @@
   no_log: true
   loop: [repository.yaml.j2, aws-credentials.yaml.j2, seaweedfs-credentials.yaml.j2]
   run_once: true
-- name: Apply staged Argo CD roots
-  ansible.builtin.command: kubectl apply -f -
-  args:
-    stdin: "{{ lookup('template', role_path ~ '/templates/root-application.yaml.j2') }}"
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: bootstrap_argocd_root
-  changed_when: "'created' in bootstrap_argocd_root.stdout or 'configured' in bootstrap_argocd_root.stdout"
-  loop:
-    - {name: projects, path: src/k8s/bootstrap/projects}
-    - {name: base-operators, path: src/k8s/bootstrap/operators/base}
-    - {name: dependent-operators, path: src/k8s/bootstrap/operators/dependent}
-    - {name: platform, path: src/k8s/platform}
-    - {name: apps, path: src/k8s/apps}
-  run_once: true
+- name: Reconcile Argo CD projects
+  ansible.builtin.import_tasks: projects.yml
+- name: Reconcile base and dependent operators
+  ansible.builtin.import_tasks: operators.yml
+- name: Reconcile platform
+  ansible.builtin.import_tasks: platform.yml
+- name: Enable applications
+  ansible.builtin.import_tasks: apps.yml

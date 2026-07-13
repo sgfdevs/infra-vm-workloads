@@ -1,0 +1,14 @@
+---
+- name: "Apply Argo CD root | {{ bootstrap_argocd_root_name }}"
+  ansible.builtin.command: kubectl apply -f -
+  args:
+    stdin: "{{ lookup('template', role_path ~ '/templates/root-application.yaml.j2') }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_root
+  changed_when: "'created' in bootstrap_argocd_root.stdout or 'configured' in bootstrap_argocd_root.stdout"
+  vars:
+    item:
+      name: "{{ bootstrap_argocd_root_name }}"
+      path: "{{ bootstrap_argocd_root_path }}"
+  run_once: true

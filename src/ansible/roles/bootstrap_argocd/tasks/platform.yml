@@ -1,0 +1,21 @@
+---
+- name: Apply platform root
+  ansible.builtin.include_tasks: apply-root.yml
+  vars:
+    bootstrap_argocd_root_name: platform
+    bootstrap_argocd_root_path: src/k8s/platform
+- name: Wait for foundational platform configuration
+  ansible.builtin.command:
+    argv: >-
+      {{ ['kubectl', 'wait', item.resource, '--for=condition=' ~ item.condition,
+          '--timeout=' ~ bootstrap_argocd_poll_timeout] }}
+  environment: {KUBECONFIG: /etc/rancher/k3s/k3s.yaml}
+  register: bootstrap_argocd_configuration
+  changed_when: false
+  failed_when: false
+  retries: "{{ bootstrap_argocd_health_retries }}"
+  delay: "{{ bootstrap_argocd_health_delay }}"
+  until: bootstrap_argocd_configuration.rc == 0
+  loop: "{{ bootstrap_argocd_configuration_resources }}"
+  loop_control: {label: "{{ item.resource }}"}
+  run_once: true
