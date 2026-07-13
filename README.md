@@ -28,7 +28,7 @@ make ansible PLAYBOOK=argocd-bootstrap.yml
 - Replace `CHANGEME` in `sgfdevs/infra-k8s-apps/src/k8s/platform/dex.yaml` with the GitHub OAuth App client ID before bootstrapping the platform.
 - Add the `git_deploy_public_key` output as a read-only deploy key in [`sgfdevs/infra-k8s-apps`](https://github.com/sgfdevs/infra-k8s-apps).
 - After the first apply, manually replace the write-only `CHANGEME` value in `/vm-workloads/sgfdevs/infra-vm-workloads/dex-github-oauth-client-secret` with the Dex GitHub OAuth App client secret. Do not increment `value_wo_version` unless intentionally replacing the manual value.
-- Replace `CHANGEME` in `/vm-workloads/sgfdevs/infra-vm-workloads/backups/{b2-account-id,b2-account-key}` with credentials scoped only to `sgfdevs-vm-workloads-backups`.
+- Replace `CHANGEME` in `/vm-workloads/sgfdevs/infra-vm-workloads/backups/{b2-account-id,b2-account-key}` with credentials scoped only to `sgfdevs-on-prem-k3s-backups`.
 - Apply `sgfdevs/infra-aws-core` first; it creates the scoped External Secrets IAM identity and bootstrap credentials at `/homelab/sgfdevs-vms/eso-ssm-access-key-id` and `/homelab/sgfdevs-vms/eso-ssm-secret-access-key`.
 - Run `cluster-bootstrap.yml` for a complete rebuild, or `argocd-bootstrap.yml` to reconcile only Argo CD bootstrap resources.
 
