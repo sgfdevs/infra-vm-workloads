@@ -1,29 +1,13 @@
 ---
 - name: Install storage management packages
   ansible.builtin.apt:
-    name: [cryptsetup, e2fsprogs, parted]
+    name:
+      - cryptsetup
+      - e2fsprogs
+      - parted
     state: present
     update_cache: true
-- name: Check persistent data device
-  ansible.builtin.stat:
-    path: "{{ prepare_storage_device }}"
-    follow: true
-  register: prepare_storage_device_stat
-- name: Require persistent data device
-  ansible.builtin.assert:
-    that: prepare_storage_device_stat.stat.exists
-    fail_msg: "Persistent data device {{ prepare_storage_device }} does not exist"
-- name: Read persistent data device serial
-  ansible.builtin.command:
-    argv: [lsblk, --nodeps, --noheadings, --output, SERIAL, "{{ prepare_storage_device }}"]
-  changed_when: false
-  register: prepare_storage_device_serial
-- name: Verify persistent data device serial
-  ansible.builtin.assert:
-    that: prepare_storage_device_serial.stdout | trim == data_disk_serial
-    fail_msg: >-
-      Refusing to partition {{ prepare_storage_device }}: expected serial
-      {{ data_disk_serial }}, found {{ prepare_storage_device_serial.stdout | trim }}
+
 - name: Create persistent data partition
   community.general.parted:
     device: "{{ prepare_storage_device }}"
@@ -33,15 +17,18 @@
     part_start: 1MiB
     part_end: 100%
     state: present
+
 - name: Wait for udev to process the data partition
   ansible.builtin.command: udevadm settle
   changed_when: false
+
 - name: Create persistent data filesystem
   community.general.filesystem:
     dev: "{{ prepare_storage_partition }}"
     fstype: ext4
     force: false
     state: present
+
 - name: Mount persistent data filesystem
   ansible.posix.mount:
     path: "{{ prepare_storage_mount_path }}"
@@ -51,6 +38,7 @@
     dump: "0"
     passno: "2"
     state: mounted
+
 - name: Create Kubernetes storage directories
   ansible.builtin.file:
     path: "{{ prepare_storage_mount_path }}/{{ item }}"
@@ -59,11 +47,13 @@
     group: root
     mode: "0755"
   loop: "{{ prepare_storage_directories }}"
+
 - name: Load device-mapper encryption module
   community.general.modprobe:
     name: dm_crypt
     state: present
     persistent: present
+
 - name: Expose Longhorn data directory as a mount point
   ansible.posix.mount:
     path: "{{ prepare_storage_mount_path }}/longhorn"

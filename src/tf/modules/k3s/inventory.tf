@@ -30,7 +30,6 @@ resource "ansible_host" "workload" {
     data_disk_interface = module.k3s_vm[each.key].data_disks[
       module.k3s_data_owner[each.key].disk.serial
     ].interface
-    data_disk_serial          = module.k3s_data_owner[each.key].disk.serial
     proxmox_vm_role           = each.value.role
     ansible_ssh_use_ssh_agent = "false"
   }

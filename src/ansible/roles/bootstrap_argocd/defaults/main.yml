@@ -40,14 +40,9 @@ bootstrap_argocd_base_operator_workloads:
 bootstrap_argocd_dependent_operator_crds:
   - instrumentations.opentelemetry.io
   - opentelemetrycollectors.opentelemetry.io
-  - valkeys.valkey.io
 bootstrap_argocd_dependent_operator_workloads:
   - namespace: observability
     selector: app.kubernetes.io/instance=otel-operator
-  - namespace: valkey-operator-system
-    selector: app.kubernetes.io/instance=valkey-operator
-  - namespace: reloader
-    selector: app.kubernetes.io/instance=reloader
 bootstrap_argocd_configuration_resources:
   - resource: clusterissuer/letsencrypt-prod
     condition: Ready

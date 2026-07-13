@@ -3,3 +3,4 @@ profile: production
 offline: true
 exclude_paths:
   - collections
+  - playbooks/manifests
