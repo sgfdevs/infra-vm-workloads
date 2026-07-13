@@ -1,0 +1,27 @@
+---
+- name: Fetch Argo CD SSM values
+  ansible.builtin.set_fact:
+    bootstrap_argocd_git_deploy_private_key: "{{ lookup('amazon.aws.aws_ssm', ssm_git_deploy_private_key_path) }}"
+    bootstrap_argocd_eso_access_key_id: "{{ lookup('amazon.aws.aws_ssm', ssm_eso_access_key_id_path) }}"
+    bootstrap_argocd_eso_secret_access_key: "{{ lookup('amazon.aws.aws_ssm', ssm_eso_secret_access_key_path) }}"
+    bootstrap_argocd_seaweedfs_admin_access_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_admin_access_key_path) }}"
+    bootstrap_argocd_seaweedfs_admin_secret_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_admin_secret_key_path) }}"
+    bootstrap_argocd_seaweedfs_observability_access_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_obs_access_key_path) }}"
+    bootstrap_argocd_seaweedfs_observability_secret_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_obs_secret_key_path) }}"
+  no_log: true
+  run_once: true
+
+- name: Fetch GitHub SSH known hosts
+  ansible.builtin.command:
+    cmd: ssh-keyscan -t ed25519 github.com
+  register: bootstrap_argocd_github_known_hosts
+  changed_when: false
+  delegate_to: localhost
+  become: false
+  run_once: true
+
+- name: Apply required namespaces
+  ansible.builtin.include_tasks: apply-manifest.yml
+  vars:
+    bootstrap_argocd_manifest_name: required namespaces
+    bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/namespaces.yaml') }}"

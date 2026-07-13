@@ -1,6 +1,6 @@
 ---
 - name: Apply apps root
-  ansible.builtin.include_tasks: apply-root.yml
+  ansible.builtin.include_tasks: apply-manifest.yml
   vars:
-    bootstrap_argocd_root_name: apps
-    bootstrap_argocd_root_path: src/k8s/apps
+    bootstrap_argocd_manifest_name: apps root
+    bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/argocd-apps-root.yaml') }}"

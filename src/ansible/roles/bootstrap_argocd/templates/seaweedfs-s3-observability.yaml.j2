@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: seaweedfs-s3-observability
+  namespace: seaweedfs
+  labels:
+    app.kubernetes.io/part-of: seaweedfs
+type: Opaque
+stringData:
+  access_key: "{{ bootstrap_argocd_seaweedfs_observability_access_key }}"
+  secret_key: "{{ bootstrap_argocd_seaweedfs_observability_secret_key }}"

@@ -3,7 +3,6 @@ bootstrap_argocd_force_conflicts: false
 bootstrap_argocd_poll_timeout: 10s
 bootstrap_argocd_health_retries: 120
 bootstrap_argocd_health_delay: 10
-bootstrap_argocd_repo_url: ssh://git@github.com/sgfdevs/infra-k8s-apps.git
 bootstrap_argocd_required_crds:
   - applications.argoproj.io
   - applicationsets.argoproj.io
@@ -28,19 +27,29 @@ bootstrap_argocd_base_operator_crds:
   - schedules.k8up.io
   - volumes.longhorn.io
 bootstrap_argocd_base_operator_workloads:
-  - {namespace: cert-manager, selector: "app.kubernetes.io/instance=cert-manager"}
-  - {namespace: cnpg-system, selector: "app.kubernetes.io/instance=cnpg-operator"}
-  - {namespace: external-secrets, selector: "app.kubernetes.io/instance=external-secrets"}
-  - {namespace: longhorn-system, selector: "app.kubernetes.io/instance=longhorn"}
-  - {namespace: k8up, selector: "app.kubernetes.io/name=k8up"}
+  - namespace: cert-manager
+    selector: app.kubernetes.io/instance=cert-manager
+  - namespace: cnpg-system
+    selector: app.kubernetes.io/instance=cnpg-operator
+  - namespace: external-secrets
+    selector: app.kubernetes.io/instance=external-secrets
+  - namespace: longhorn-system
+    selector: app.kubernetes.io/instance=longhorn
+  - namespace: k8up
+    selector: app.kubernetes.io/name=k8up
 bootstrap_argocd_dependent_operator_crds:
   - instrumentations.opentelemetry.io
   - opentelemetrycollectors.opentelemetry.io
   - valkeys.valkey.io
 bootstrap_argocd_dependent_operator_workloads:
-  - {namespace: observability, selector: "app.kubernetes.io/instance=otel-operator"}
-  - {namespace: valkey-operator-system, selector: "app.kubernetes.io/instance=valkey-operator"}
-  - {namespace: reloader, selector: "app.kubernetes.io/instance=reloader"}
+  - namespace: observability
+    selector: app.kubernetes.io/instance=otel-operator
+  - namespace: valkey-operator-system
+    selector: app.kubernetes.io/instance=valkey-operator
+  - namespace: reloader
+    selector: app.kubernetes.io/instance=reloader
 bootstrap_argocd_configuration_resources:
-  - {resource: clusterissuer/letsencrypt-prod, condition: Ready}
-  - {resource: clustersecretstore/aws-ssm, condition: Ready}
+  - resource: clusterissuer/letsencrypt-prod
+    condition: Ready
+  - resource: clustersecretstore/aws-ssm
+    condition: Ready

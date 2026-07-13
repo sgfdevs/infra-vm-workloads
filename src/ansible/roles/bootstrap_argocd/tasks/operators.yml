@@ -1,61 +1,96 @@
 ---
-- name: Apply base operators root
-  ansible.builtin.include_tasks: apply-root.yml
+- name: Apply base operator root
+  ansible.builtin.include_tasks: apply-manifest.yml
   vars:
-    bootstrap_argocd_root_name: base-operators
-    bootstrap_argocd_root_path: src/k8s/bootstrap/operators/base
+    bootstrap_argocd_manifest_name: base operator root
+    bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/argocd-base-operators-root.yaml') }}"
+
 - name: Wait for base operator CRDs
-  ansible.builtin.command: "kubectl wait --for=condition=Established --timeout={{ bootstrap_argocd_poll_timeout }} crd/{{ item }}"
-  environment: {KUBECONFIG: /etc/rancher/k3s/k3s.yaml}
-  register: bootstrap_argocd_base_crd
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - wait
+      - --for=condition=Established
+      - "--timeout={{ bootstrap_argocd_poll_timeout }}"
+      - "crd/{{ item }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: _bootstrap_argocd_base_operator_crd_ready
   changed_when: false
   failed_when: false
   retries: "{{ bootstrap_argocd_health_retries }}"
   delay: "{{ bootstrap_argocd_health_delay }}"
-  until: bootstrap_argocd_base_crd.rc == 0
+  until: _bootstrap_argocd_base_operator_crd_ready.rc == 0
   loop: "{{ bootstrap_argocd_base_operator_crds }}"
   run_once: true
+
 - name: Wait for base operator workloads
-  ansible.builtin.command: >-
-    kubectl wait -n {{ item.namespace }} --for=condition=Ready --timeout={{ bootstrap_argocd_poll_timeout }}
-    pod --selector={{ item.selector }}
-  environment: {KUBECONFIG: /etc/rancher/k3s/k3s.yaml}
-  register: bootstrap_argocd_base_workload
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - wait
+      - "--namespace={{ item.namespace }}"
+      - --for=condition=Ready
+      - "--timeout={{ bootstrap_argocd_poll_timeout }}"
+      - pod
+      - "--selector={{ item.selector }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: _bootstrap_argocd_base_operator_ready
   changed_when: false
   failed_when: false
   retries: "{{ bootstrap_argocd_health_retries }}"
   delay: "{{ bootstrap_argocd_health_delay }}"
-  until: bootstrap_argocd_base_workload.rc == 0
+  until: _bootstrap_argocd_base_operator_ready.rc == 0
   loop: "{{ bootstrap_argocd_base_operator_workloads }}"
-  loop_control: {label: "{{ item.namespace }}: {{ item.selector }}"}
+  loop_control:
+    label: "{{ item.namespace }}: {{ item.selector }}"
   run_once: true
-- name: Apply dependent operators root
-  ansible.builtin.include_tasks: apply-root.yml
+
+- name: Apply dependent operator root
+  ansible.builtin.include_tasks: apply-manifest.yml
   vars:
-    bootstrap_argocd_root_name: dependent-operators
-    bootstrap_argocd_root_path: src/k8s/bootstrap/operators/dependent
+    bootstrap_argocd_manifest_name: dependent operator root
+    bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/argocd-dependent-operators-root.yaml') }}"
+
 - name: Wait for dependent operator CRDs
-  ansible.builtin.command: "kubectl wait --for=condition=Established --timeout={{ bootstrap_argocd_poll_timeout }} crd/{{ item }}"
-  environment: {KUBECONFIG: /etc/rancher/k3s/k3s.yaml}
-  register: bootstrap_argocd_dependent_crd
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - wait
+      - --for=condition=Established
+      - "--timeout={{ bootstrap_argocd_poll_timeout }}"
+      - "crd/{{ item }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: _bootstrap_argocd_dependent_operator_crd_ready
   changed_when: false
   failed_when: false
   retries: "{{ bootstrap_argocd_health_retries }}"
   delay: "{{ bootstrap_argocd_health_delay }}"
-  until: bootstrap_argocd_dependent_crd.rc == 0
+  until: _bootstrap_argocd_dependent_operator_crd_ready.rc == 0
   loop: "{{ bootstrap_argocd_dependent_operator_crds }}"
   run_once: true
+
 - name: Wait for dependent operator workloads
-  ansible.builtin.command: >-
-    kubectl wait -n {{ item.namespace }} --for=condition=Ready --timeout={{ bootstrap_argocd_poll_timeout }}
-    pod --selector={{ item.selector }}
-  environment: {KUBECONFIG: /etc/rancher/k3s/k3s.yaml}
-  register: bootstrap_argocd_dependent_workload
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - wait
+      - "--namespace={{ item.namespace }}"
+      - --for=condition=Ready
+      - "--timeout={{ bootstrap_argocd_poll_timeout }}"
+      - pod
+      - "--selector={{ item.selector }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: _bootstrap_argocd_dependent_operator_ready
   changed_when: false
   failed_when: false
   retries: "{{ bootstrap_argocd_health_retries }}"
   delay: "{{ bootstrap_argocd_health_delay }}"
-  until: bootstrap_argocd_dependent_workload.rc == 0
+  until: _bootstrap_argocd_dependent_operator_ready.rc == 0
   loop: "{{ bootstrap_argocd_dependent_operator_workloads }}"
-  loop_control: {label: "{{ item.namespace }}: {{ item.selector }}"}
+  loop_control:
+    label: "{{ item.namespace }}: {{ item.selector }}"
   run_once: true

@@ -1,60 +1,21 @@
 ---
-- name: Fetch bootstrap secrets from SSM
-  ansible.builtin.set_fact:
-    bootstrap_argocd_git_key: "{{ lookup('amazon.aws.aws_ssm', ssm_git_deploy_private_key_path) }}"
-    bootstrap_argocd_eso_id: "{{ lookup('amazon.aws.aws_ssm', ssm_eso_access_key_id_path) }}"
-    bootstrap_argocd_eso_key: "{{ lookup('amazon.aws.aws_ssm', ssm_eso_secret_access_key_path) }}"
-    bootstrap_argocd_s3_admin_id: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_admin_access_key_path) }}"
-    bootstrap_argocd_s3_admin_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_admin_secret_key_path) }}"
-    bootstrap_argocd_s3_obs_id: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_obs_access_key_path) }}"
-    bootstrap_argocd_s3_obs_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_obs_secret_key_path) }}"
-  no_log: true
-  run_once: true
-- name: Fetch GitHub SSH known hosts
-  ansible.builtin.command: ssh-keyscan -t ed25519 github.com
-  register: bootstrap_argocd_known_hosts
-  changed_when: false
-  delegate_to: localhost
-  become: false
-  run_once: true
-- name: Apply required namespaces
-  ansible.builtin.command: kubectl apply -f -
-  args:
-    stdin: "{{ lookup('file', role_path ~ '/files/namespaces.yaml') }}"
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: bootstrap_argocd_namespaces
-  changed_when: "'created' in bootstrap_argocd_namespaces.stdout or 'configured' in bootstrap_argocd_namespaces.stdout"
-  run_once: true
+- name: Prepare bootstrap inputs
+  ansible.builtin.import_tasks: prepare.yml
+
 - name: Install Argo CD
   ansible.builtin.import_tasks: install.yml
-- name: Configure Argo CD Application health assessment
-  ansible.builtin.command: kubectl apply -f -
-  args:
-    stdin: "{{ lookup('file', role_path ~ '/files/argocd-application-health.yaml') }}"
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: bootstrap_argocd_health_config
-  changed_when: >-
-    'created' in bootstrap_argocd_health_config.stdout or
-    'configured' in bootstrap_argocd_health_config.stdout
-  run_once: true
-- name: Seed Argo CD and external credentials
-  ansible.builtin.command: kubectl apply -f -
-  args:
-    stdin: "{{ lookup('template', role_path ~ '/templates/' ~ item) }}"
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: bootstrap_argocd_seed
-  changed_when: "'created' in bootstrap_argocd_seed.stdout or 'configured' in bootstrap_argocd_seed.stdout"
-  no_log: true
-  loop: [repository.yaml.j2, aws-credentials.yaml.j2, seaweedfs-credentials.yaml.j2]
-  run_once: true
-- name: Reconcile Argo CD projects
-  ansible.builtin.import_tasks: projects.yml
-- name: Reconcile base and dependent operators
+
+- name: Seed Argo CD access and projects
+  ansible.builtin.import_tasks: seed-argocd.yml
+
+- name: Seed external credentials
+  ansible.builtin.import_tasks: seed-secrets.yml
+
+- name: Reconcile operators
   ansible.builtin.import_tasks: operators.yml
+
 - name: Reconcile platform
   ansible.builtin.import_tasks: platform.yml
+
 - name: Enable applications
   ansible.builtin.import_tasks: apps.yml

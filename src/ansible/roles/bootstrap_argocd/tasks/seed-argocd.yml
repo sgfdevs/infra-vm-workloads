@@ -1,0 +1,30 @@
+---
+- name: Apply Argo CD access and project manifests
+  ansible.builtin.include_tasks: apply-manifest.yml
+  vars:
+    bootstrap_argocd_manifest_name: "{{ item.name }}"
+    bootstrap_argocd_manifest: "{{ lookup(item.lookup_type, role_path ~ '/' ~ item.path) }}"
+    bootstrap_argocd_manifest_secret: "{{ item.secret }}"
+  loop:
+    - name: Argo CD Application health assessment
+      lookup_type: file
+      path: files/argocd-application-health.yaml
+      secret: false
+    - name: Argo CD repository secret
+      lookup_type: template
+      path: templates/argocd-repo-secret.yaml.j2
+      secret: true
+    - name: Argo CD SSH known hosts
+      lookup_type: template
+      path: templates/argocd-ssh-known-hosts-cm.yaml.j2
+      secret: false
+    - name: Argo CD bootstrap project
+      lookup_type: file
+      path: files/argocd-projects.yaml
+      secret: false
+    - name: Argo CD projects root
+      lookup_type: file
+      path: files/argocd-projects-root.yaml
+      secret: false
+  loop_control:
+    label: "{{ item.name }}"

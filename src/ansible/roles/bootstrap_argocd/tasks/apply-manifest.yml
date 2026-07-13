@@ -1,0 +1,13 @@
+---
+- name: "Apply {{ bootstrap_argocd_manifest_name }}"
+  ansible.builtin.command: kubectl apply -f -
+  args:
+    stdin: "{{ bootstrap_argocd_manifest }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: _bootstrap_argocd_apply
+  changed_when: >-
+    'created' in (_bootstrap_argocd_apply.stdout | default(''))
+    or 'configured' in (_bootstrap_argocd_apply.stdout | default(''))
+  no_log: "{{ bootstrap_argocd_manifest_secret | default(false) }}"
+  run_once: true
