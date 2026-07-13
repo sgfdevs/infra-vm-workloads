@@ -30,10 +30,10 @@ make ansible PLAYBOOK=argocd-bootstrap.yml
 - After the first apply, manually replace the write-only `CHANGEME` value in `/vm-workloads/sgfdevs/infra-vm-workloads/dex-github-oauth-client-secret` with the Dex GitHub OAuth App client secret. Do not increment `value_wo_version` unless intentionally replacing the manual value.
 - Replace `CHANGEME` in `/vm-workloads/sgfdevs/infra-vm-workloads/{argocd,grafana}-github-oauth-client-secret` only if those integrations are enabled with separate GitHub OAuth Apps.
 - Replace `CHANGEME` in `/vm-workloads/sgfdevs/infra-vm-workloads/backups/{b2-account-id,b2-account-key}` with credentials scoped only to `sgfdevs-vm-workloads-backups`.
-- Create the External Secrets IAM credentials at `/homelab/sgfdevs-vms/eso-ssm-access-key-id` and `/homelab/sgfdevs-vms/eso-ssm-secret-access-key`, scoped to the SGF SSM hierarchy.
+- Apply `sgfdevs/infra-aws-core` first; it creates the scoped External Secrets IAM identity and bootstrap credentials at `/homelab/sgfdevs-vms/eso-ssm-access-key-id` and `/homelab/sgfdevs-vms/eso-ssm-secret-access-key`.
 - Run `cluster-bootstrap.yml` for a complete rebuild, or `argocd-bootstrap.yml` to reconcile only Argo CD bootstrap resources.
 
 ## Operating constraints
 - This repo mixes infrastructure provisioning and cluster bootstrap; run Terraform and Ansible steps intentionally and in order.
 - Generated OpenBao, Dex client, OAuth2 Proxy cookie, SeaweedFS, and backup secrets use `prevent_destroy`. A full destroy is intentionally blocked until an operator explicitly removes those lifecycle guards after preserving or accepting loss of the values.
-- Public ingress and edge routing must be established externally after the cluster is available.
+- Apply `sgfdevs/infra-dns` and reconcile the existing `lz/infra-public-edge` before expecting public ingress or HTTP-01 certificates to become ready.
