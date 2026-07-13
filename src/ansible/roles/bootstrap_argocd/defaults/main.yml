@@ -1,4 +1,5 @@
 ---
+bootstrap_argocd_force_conflicts: false
 bootstrap_argocd_poll_timeout: 10s
 bootstrap_argocd_health_retries: 120
 bootstrap_argocd_health_delay: 10

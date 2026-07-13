@@ -27,47 +27,17 @@
   changed_when: "'created' in bootstrap_argocd_namespaces.stdout or 'configured' in bootstrap_argocd_namespaces.stdout"
   run_once: true
 - name: Install Argo CD
-  ansible.builtin.command: kubectl apply --server-side -n argocd -f -
+  ansible.builtin.import_tasks: install.yml
+- name: Configure Argo CD Application health assessment
+  ansible.builtin.command: kubectl apply -f -
   args:
-    stdin: "{{ lookup('url', 'https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.5/manifests/ha/install.yaml', split_lines=False) }}"
+    stdin: "{{ lookup('file', role_path ~ '/files/argocd-application-health.yaml') }}"
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: bootstrap_argocd_install
+  register: bootstrap_argocd_health_config
   changed_when: >-
-    'created' in bootstrap_argocd_install.stdout or
-    'configured' in bootstrap_argocd_install.stdout or
-    'serverside-applied' in bootstrap_argocd_install.stdout
-  run_once: true
-- name: Wait for Argo CD CRDs
-  ansible.builtin.command:
-    argv:
-      - kubectl
-      - wait
-      - --for=condition=Established
-      - "--timeout={{ bootstrap_argocd_poll_timeout }}"
-      - "crd/{{ item }}"
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: bootstrap_argocd_crd_ready
-  changed_when: false
-  failed_when: false
-  retries: "{{ bootstrap_argocd_health_retries }}"
-  delay: "{{ bootstrap_argocd_health_delay }}"
-  until: bootstrap_argocd_crd_ready.rc == 0
-  loop: "{{ bootstrap_argocd_required_crds }}"
-  run_once: true
-- name: Wait for required Argo CD workloads
-  ansible.builtin.command: >-
-    kubectl rollout status {{ item }} -n argocd
-    --timeout={{ bootstrap_argocd_poll_timeout }}
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: bootstrap_argocd_ready
-  changed_when: false
-  retries: "{{ bootstrap_argocd_health_retries }}"
-  delay: "{{ bootstrap_argocd_health_delay }}"
-  until: bootstrap_argocd_ready.rc == 0
-  loop: "{{ bootstrap_argocd_required_workloads }}"
+    'created' in bootstrap_argocd_health_config.stdout or
+    'configured' in bootstrap_argocd_health_config.stdout
   run_once: true
 - name: Seed Argo CD and external credentials
   ansible.builtin.command: kubectl apply -f -

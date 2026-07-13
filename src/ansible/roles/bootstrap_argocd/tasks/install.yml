@@ -1,0 +1,83 @@
+---
+- name: Check for the Argo CD application controller
+  ansible.builtin.command:
+    argv: [kubectl, get, statefulset/argocd-application-controller, --namespace=argocd]
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_controller_installed
+  changed_when: false
+  failed_when: false
+  run_once: true
+- name: Check for required Argo CD CRDs
+  ansible.builtin.command:
+    argv: "{{ ['kubectl', 'get'] + bootstrap_argocd_required_crds | map('regex_replace', '^(.*)$', 'crd/\\1') | list }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_crds_installed
+  changed_when: false
+  failed_when: false
+  run_once: true
+- name: Install initial Argo CD release
+  ansible.builtin.command:
+    argv: >-
+      {{
+        ['kubectl', 'apply', '--server-side']
+        + ((bootstrap_argocd_force_conflicts | bool) | ternary(['--force-conflicts'], []))
+        + ['-n', 'argocd', '-f', '-']
+      }}
+  args:
+    stdin: >-
+      {{ lookup(
+           'url',
+           'https://raw.githubusercontent.com/argoproj/argo-cd/v3.4.5/manifests/ha/install.yaml',
+           split_lines=False
+         ) }}
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_install
+  changed_when: >-
+    'created' in (bootstrap_argocd_install.stdout | default('')) or
+    'configured' in (bootstrap_argocd_install.stdout | default('')) or
+    'serverside-applied' in (bootstrap_argocd_install.stdout | default(''))
+  when: >-
+    bootstrap_argocd_controller_installed.rc != 0 or
+    bootstrap_argocd_crds_installed.rc != 0 or
+    bootstrap_argocd_force_conflicts | bool
+  run_once: true
+- name: Wait for Argo CD CRDs
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - wait
+      - --for=condition=Established
+      - "--timeout={{ bootstrap_argocd_poll_timeout }}"
+      - "crd/{{ item }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_crd_ready
+  changed_when: false
+  failed_when: false
+  retries: "{{ bootstrap_argocd_health_retries }}"
+  delay: "{{ bootstrap_argocd_health_delay }}"
+  until: bootstrap_argocd_crd_ready.rc == 0
+  loop: "{{ bootstrap_argocd_required_crds }}"
+  run_once: true
+- name: Wait for required Argo CD workloads
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - rollout
+      - status
+      - "{{ item }}"
+      - --namespace=argocd
+      - "--timeout={{ bootstrap_argocd_poll_timeout }}"
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: bootstrap_argocd_ready
+  changed_when: false
+  failed_when: false
+  retries: "{{ bootstrap_argocd_health_retries }}"
+  delay: "{{ bootstrap_argocd_health_delay }}"
+  until: bootstrap_argocd_ready.rc == 0
+  loop: "{{ bootstrap_argocd_required_workloads }}"
+  run_once: true
