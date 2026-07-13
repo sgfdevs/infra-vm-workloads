@@ -22,12 +22,6 @@ resource "aws_ssm_parameter" "openbao_unseal_key" {
   lifecycle { prevent_destroy = true }
 }
 
-resource "aws_ssm_parameter" "dex_github_oauth_client_id" {
-  name  = "${local.ssm_key_prefix}/dex-github-oauth-client-id"
-  type  = "String"
-  value = var.dex_github_oauth_client_id
-}
-
 resource "aws_ssm_parameter" "github_oauth_client_secret" {
   for_each         = toset(["argocd", "grafana", "dex"])
   name             = "${local.ssm_key_prefix}/${each.key}-github-oauth-client-secret"

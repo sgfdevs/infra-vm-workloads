@@ -25,7 +25,7 @@ make ansible PLAYBOOK=argocd-bootstrap.yml
 
 ## Operational order
 - Apply Terraform first to create the VMs, 300 GB data disks, backup resources, and SSM parameters.
-- Export the Dex GitHub OAuth App client ID before running OpenTofu: `export TF_VAR_dex_github_oauth_client_id=<github-oauth-app-client-id>`. OpenTofu writes it to `/vm-workloads/sgfdevs/infra-vm-workloads/dex-github-oauth-client-id` as a String parameter.
+- Replace `CHANGEME` in `sgfdevs/infra-k8s-apps/src/k8s/platform/dex.yaml` with the GitHub OAuth App client ID before bootstrapping the platform.
 - Add the `git_deploy_public_key` output as a read-only deploy key in [`sgfdevs/infra-k8s-apps`](https://github.com/sgfdevs/infra-k8s-apps).
 - After the first apply, manually replace the write-only `CHANGEME` value in `/vm-workloads/sgfdevs/infra-vm-workloads/dex-github-oauth-client-secret` with the Dex GitHub OAuth App client secret. Do not increment `value_wo_version` unless intentionally replacing the manual value.
 - Replace `CHANGEME` in `/vm-workloads/sgfdevs/infra-vm-workloads/{argocd,grafana}-github-oauth-client-secret` only if those integrations are enabled with separate GitHub OAuth Apps.

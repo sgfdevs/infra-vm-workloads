@@ -1,6 +1,5 @@
 module "sgfdevs_k3s_cluster" {
-  source                     = "./modules/k3s"
-  dex_github_oauth_client_id = var.dex_github_oauth_client_id
+  source = "./modules/k3s"
 }
 
 moved {
