@@ -26,6 +26,7 @@ bootstrap_argocd_base_operator_crds:
   - prebackuppods.k8up.io
   - schedules.k8up.io
   - volumes.longhorn.io
+  - clusters.apps.kubeblocks.io
 bootstrap_argocd_base_operator_workloads:
   - namespace: cert-manager
     selector: app.kubernetes.io/instance=cert-manager
@@ -38,9 +39,14 @@ bootstrap_argocd_base_operator_workloads:
   - namespace: k8up
     selector: app.kubernetes.io/name=k8up
 bootstrap_argocd_dependent_operator_crds:
+  - databases.kinda.rocks
   - instrumentations.opentelemetry.io
   - opentelemetrycollectors.opentelemetry.io
 bootstrap_argocd_dependent_operator_workloads:
+  - namespace: db-operator
+    selector: app.kubernetes.io/instance=db-operator
+  - namespace: kb-system
+    selector: app.kubernetes.io/instance=kubeblocks
   - namespace: observability
     selector: app.kubernetes.io/instance=otel-operator
 bootstrap_argocd_configuration_resources:
