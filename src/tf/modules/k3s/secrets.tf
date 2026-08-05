@@ -42,10 +42,43 @@ ephemeral "random_password" "dex_client" {
   special  = false
 }
 
+# Retained as the migration source until the individual parameters are deployed.
 resource "aws_ssm_parameter" "dex_client_secrets" {
   name             = "${local.ssm_key_prefix}/dex-client-secrets"
   type             = "SecureString"
   value_wo         = jsonencode({ for name, password in ephemeral.random_password.dex_client : "${name}ClientSecret" => password.result })
+  value_wo_version = 1
+  lifecycle { prevent_destroy = false }
+}
+
+ephemeral "aws_ssm_parameter" "dex_client_secrets" {
+  arn = aws_ssm_parameter.dex_client_secrets.arn
+}
+
+resource "aws_ssm_parameter" "dex_client_secret" {
+  for_each = {
+    argocd       = "argocdClientSecret"
+    grafana      = "grafanaClientSecret"
+    oauth2-proxy = "oauth2ProxyClientSecret"
+    openbao      = "openbaoClientSecret"
+  }
+
+  name             = "${local.ssm_key_prefix}/dex-${each.key}-client-secret"
+  type             = "SecureString"
+  value_wo         = jsondecode(ephemeral.aws_ssm_parameter.dex_client_secrets.value)[each.value]
+  value_wo_version = 1
+  lifecycle { prevent_destroy = true }
+}
+
+ephemeral "random_password" "argo_workflows_client" {
+  length  = 40
+  special = false
+}
+
+resource "aws_ssm_parameter" "argo_workflows_client_secret" {
+  name             = "${local.ssm_key_prefix}/dex-argo-workflows-client-secret"
+  type             = "SecureString"
+  value_wo         = ephemeral.random_password.argo_workflows_client.result
   value_wo_version = 1
   lifecycle { prevent_destroy = true }
 }
