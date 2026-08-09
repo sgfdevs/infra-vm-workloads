@@ -37,35 +37,17 @@ moved {
 }
 
 ephemeral "random_password" "dex_client" {
-  for_each = toset(["argocd", "grafana", "oauth2Proxy", "openbao"])
+  for_each = toset(["argocd", "grafana", "oauth2-proxy", "openbao"])
   length   = 40
   special  = false
 }
 
-# Retained as the migration source until the individual parameters are deployed.
-resource "aws_ssm_parameter" "dex_client_secrets" {
-  name             = "${local.ssm_key_prefix}/dex-client-secrets"
-  type             = "SecureString"
-  value_wo         = jsonencode({ for name, password in ephemeral.random_password.dex_client : "${name}ClientSecret" => password.result })
-  value_wo_version = 1
-  lifecycle { prevent_destroy = false }
-}
-
-ephemeral "aws_ssm_parameter" "dex_client_secrets" {
-  arn = aws_ssm_parameter.dex_client_secrets.arn
-}
-
 resource "aws_ssm_parameter" "dex_client_secret" {
-  for_each = {
-    argocd       = "argocdClientSecret"
-    grafana      = "grafanaClientSecret"
-    oauth2-proxy = "oauth2ProxyClientSecret"
-    openbao      = "openbaoClientSecret"
-  }
+  for_each = toset(["argocd", "grafana", "oauth2-proxy", "openbao"])
 
   name             = "${local.ssm_key_prefix}/dex-${each.key}-client-secret"
   type             = "SecureString"
-  value_wo         = jsondecode(ephemeral.aws_ssm_parameter.dex_client_secrets.value)[each.value]
+  value_wo         = ephemeral.random_password.dex_client[each.key].result
   value_wo_version = 1
   lifecycle { prevent_destroy = true }
 }
