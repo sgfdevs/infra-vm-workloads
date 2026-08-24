@@ -1,7 +1,7 @@
 locals {
   backup_bucket_name = "sgfdevs-on-prem-k3s-backups"
   backup_ssm_prefix  = "/vm-workloads/sgfdevs/infra-vm-workloads/backups"
-  backup_apps        = toset(["openbao"])
+  backup_apps        = toset(["openbao", "zitadel"])
 }
 
 resource "b2_bucket" "backups" {
