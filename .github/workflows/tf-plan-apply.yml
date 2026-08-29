@@ -28,6 +28,8 @@ jobs:
       envrc_content: |
         export TF_VAR_proxmox_endpoint="${{ secrets.TF_VAR_proxmox_endpoint }}"
         export TF_VAR_proxmox_api_token="${{ secrets.TF_VAR_proxmox_api_token }}"
+        export TF_VAR_cloudflare_sgfdevs_api_token="${{ secrets.TF_VAR_CLOUDFLARE_SGFDEVS_API_TOKEN }}"
+        export TF_VAR_cloudflare_opensgf_api_token="${{ secrets.TF_VAR_CLOUDFLARE_OPENSGF_API_TOKEN }}"
         export TF_VAR_b2_application_key_id="${{ secrets.TF_VAR_b2_application_key_id }}"
         export TF_VAR_b2_application_key="${{ secrets.TF_VAR_b2_application_key }}"
       aws_role_arn: ${{ secrets.AWS_ROLE_ARN }}
@@ -42,6 +44,8 @@ jobs:
       envrc_content: |
         export TF_VAR_proxmox_endpoint="${{ secrets.TF_VAR_proxmox_endpoint }}"
         export TF_VAR_proxmox_api_token="${{ secrets.TF_VAR_proxmox_api_token }}"
+        export TF_VAR_cloudflare_sgfdevs_api_token="${{ secrets.TF_VAR_CLOUDFLARE_SGFDEVS_API_TOKEN }}"
+        export TF_VAR_cloudflare_opensgf_api_token="${{ secrets.TF_VAR_CLOUDFLARE_OPENSGF_API_TOKEN }}"
         export TF_VAR_b2_application_key_id="${{ secrets.TF_VAR_b2_application_key_id }}"
         export TF_VAR_b2_application_key="${{ secrets.TF_VAR_b2_application_key }}"
       headscale_auth_key: ${{ secrets.HEADSCALE_AUTH_KEY }}

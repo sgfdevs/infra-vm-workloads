@@ -15,6 +15,18 @@ variable "aws_region" {
   default     = "us-east-2"
 }
 
+variable "cloudflare_sgfdevs_api_token" {
+  description = "Cloudflare API token with tunnel management permissions for the SGF Devs account"
+  type        = string
+  sensitive   = true
+}
+
+variable "cloudflare_opensgf_api_token" {
+  description = "Cloudflare API token with tunnel management permissions for the OpenSGF account"
+  type        = string
+  sensitive   = true
+}
+
 variable "b2_application_key_id" {
   description = "Backblaze B2 application key ID for Terraform bucket management"
   type        = string
