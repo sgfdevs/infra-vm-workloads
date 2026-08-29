@@ -3,14 +3,20 @@
 Provisions SGF Devs workload VMs on Proxmox and bootstraps the k3s cluster and Argo CD baseline used to deploy Kubernetes manifests.
 
 ## Scope
-- Owns: OpenTofu resources for three workload VMs, persistent data disks, SSH/Git deploy keys, the backup bucket, and SSM parameters used by cluster automation.
+- Owns: OpenTofu resources for three workload VMs, persistent data disks, SSH/Git deploy keys, the backup bucket, Cloudflare Tunnels, and SSM parameters used by cluster automation.
 - Owns: Ansible node/storage preparation, k3s installation, and Argo CD bootstrap.
-- Does not own: public edge connectivity or Proxmox metrics configuration.
+- Does not own: Cloudflare DNS records, in-cluster tunnel connectors, existing public edge connectivity, or Proxmox metrics configuration.
 
 ## Structure
 - `src/tf/`: Provisions Proxmox VMs and emits Terraform-backed Ansible inventory data.
 - `src/ansible/`: Rebuilds the cluster (`cluster-bootstrap.yml`) and supports rerunning Argo CD bootstrap (`argocd-bootstrap.yml`).
 - `.github/workflows/`: Terraform plan/apply and Ansible lint/manual execution workflows.
+
+## Cloudflare credentials
+- Create one API token in each Cloudflare account with Account > Cloudflare Tunnel > Edit, scoped only to that account.
+- Store the SGF Devs account token in the `TF_VAR_CLOUDFLARE_SGFDEVS_API_TOKEN` repository secret.
+- Store the OpenSGF account token in the `TF_VAR_CLOUDFLARE_OPENSGF_API_TOKEN` repository secret.
+- These tokens do not require DNS, zone, or Account Settings permissions.
 
 ## Run
 ```bash
@@ -24,7 +30,9 @@ make ansible PLAYBOOK=argocd-bootstrap.yml
 ```
 
 ## Operational order
-- Apply Terraform first to create the VMs, 300 GB data disks, backup resources, and SSM parameters.
+- Apply Terraform first to create the VMs, 300 GB data disks, backup resources, SGF Devs and OpenSGF Cloudflare Tunnels, and SSM parameters.
+- Deploy the matching connector from `sgfdevs/infra-k8s-apps` before routing any DNS records to a tunnel target.
+- Apply DNS changes from the repository that owns each Cloudflare account only after its connector is healthy.
 - Replace `CHANGEME` in `sgfdevs/infra-k8s-apps/src/k8s/platform/dex.yaml` with the GitHub OAuth App client ID before bootstrapping the platform.
 - Add the `git_deploy_public_key` output as a read-only deploy key in [`sgfdevs/infra-k8s-apps`](https://github.com/sgfdevs/infra-k8s-apps).
 - After the first apply, manually replace the write-only `CHANGEME` value in `/vm-workloads/sgfdevs/infra-vm-workloads/dex-github-oauth-client-secret` with the Dex GitHub OAuth App client secret. Do not increment `value_wo_version` unless intentionally replacing the manual value.

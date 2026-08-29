@@ -14,6 +14,10 @@ terraform {
       source  = "Backblaze/b2"
       version = "~> 0.13"
     }
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "~> 5.23"
+    }
     proxmox = {
       source  = "bpg/proxmox"
       version = "~> 0.111"

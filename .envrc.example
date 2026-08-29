@@ -3,3 +3,7 @@ export AWS_DEFAULT_PROFILE="your-aws-profile-name"
 # Proxmox provider auth
 export TF_VAR_proxmox_endpoint="https://x86-node-01:8006/"
 export TF_VAR_proxmox_api_token="sgfdevs-gha@pve!gha=your-token-secret"
+
+# Cloudflare Tunnel provider auth
+export TF_VAR_cloudflare_sgfdevs_api_token="your-sgfdevs-cloudflare-api-token"
+export TF_VAR_cloudflare_opensgf_api_token="your-opensgf-cloudflare-api-token"
