@@ -12,12 +12,6 @@ Provisions SGF Devs workload VMs on Proxmox and bootstraps the k3s cluster and A
 - `src/ansible/`: Rebuilds the cluster (`cluster-bootstrap.yml`) and supports rerunning Argo CD bootstrap (`argocd-bootstrap.yml`).
 - `.github/workflows/`: Terraform plan/apply and Ansible lint/manual execution workflows.
 
-## Cloudflare credentials
-- Create one API token in each Cloudflare account with Account > Cloudflare Tunnel > Edit, scoped only to that account.
-- Store the SGF Devs account token in the `TF_VAR_CLOUDFLARE_SGFDEVS_API_TOKEN` repository secret.
-- Store the OpenSGF account token in the `TF_VAR_CLOUDFLARE_OPENSGF_API_TOKEN` repository secret.
-- These tokens do not require DNS, zone, or Account Settings permissions.
-
 ## Run
 ```bash
 make help
