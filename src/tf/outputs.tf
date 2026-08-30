@@ -6,6 +6,16 @@ output "git_deploy_public_key" {
   value = module.sgfdevs_k3s_cluster.git_deploy_public_key
 }
 
+output "sgfdevs_k3s_external_secrets_workload_role_arn" {
+  description = "IAM role ARN assumed by the External Secrets service account."
+  value       = aws_iam_role.external_secrets.arn
+}
+
+output "sgfdevs_k3s_openbao_workload_role_arn" {
+  description = "IAM role ARN assumed by the OpenBao service account."
+  value       = aws_iam_role.openbao.arn
+}
+
 output "ssm_paths" {
   value = merge(module.sgfdevs_k3s_cluster.ssm_paths, {
     cloudflare_sgfdevs_tunnel_token = aws_ssm_parameter.cloudflare_sgfdevs_tunnel_token.name
