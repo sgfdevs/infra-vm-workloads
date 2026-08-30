@@ -2,3 +2,10 @@
 k3s_version: v1.36.4+k3s1
 cluster_cidr: 10.52.0.0/16
 service_cidr: 10.53.0.0/16
+server_config_yaml: |
+  kube-apiserver-arg:
+    - service-account-issuer=https://k8s-oidc.sgf.dev
+    - service-account-issuer=https://kubernetes.default.svc.cluster.local
+    - service-account-jwks-uri=https://k8s-oidc.sgf.dev/openid/v1/jwks
+  node-label:
+    - "cpu-microarchitecture={{ k3s_cpu_microarchitecture }}"
