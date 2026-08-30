@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-runtime
+  namespace: kube-system
+data:
+  SGFDEVS_AWS_ACCOUNT_ID: "{{ bootstrap_argocd_aws_caller_info.account }}"
+  OPENSGF_AWS_ACCOUNT_ID: "{{ bootstrap_argocd_opensgf_aws_account_id }}"
