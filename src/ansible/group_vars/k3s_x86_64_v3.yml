@@ -1,4 +1,2 @@
 ---
-server_config_yaml: |
-  node-label:
-    - "cpu-microarchitecture=x86-64-v3"
+k3s_cpu_microarchitecture: x86-64-v3
