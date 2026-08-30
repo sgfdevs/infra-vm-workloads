@@ -8,7 +8,7 @@
 - name: Seed Argo CD access and projects
   ansible.builtin.import_tasks: seed-argocd.yml
 
-- name: Seed external credentials
+- name: Seed storage credentials
   ansible.builtin.import_tasks: seed-secrets.yml
 
 - name: Reconcile operators
