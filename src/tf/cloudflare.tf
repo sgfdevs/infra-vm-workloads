@@ -46,6 +46,7 @@ locals {
           hostname = hostname
           service  = local.cloudflare_tunnel_https_origin
           origin_request = {
+            http2_origin      = true
             match_sn_ito_host = true
           }
         },
