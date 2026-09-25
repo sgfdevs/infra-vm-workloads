@@ -12,8 +12,12 @@ locals {
   cloudflare_sgfdevs_account_id = one(data.cloudflare_accounts.sgfdevs.result).id
   cloudflare_opensgf_account_id = one(data.cloudflare_accounts.opensgf.result).id
 
-  cloudflare_tunnel_http_origin  = "http://traefik.kube-system.svc.cluster.local:80"
-  cloudflare_tunnel_https_origin = "https://traefik.kube-system.svc.cluster.local:443"
+  cloudflare_tunnel_http_origin  = "http://127.0.0.1:8000"
+  cloudflare_tunnel_https_origin = "https://127.0.0.1:8443"
+  cloudflare_tunnel_https_origin_request = {
+    http2_origin       = true
+    origin_server_name = "traefik.sgf.dev"
+  }
 
   cloudflare_sgfdevs_tunnel_hostnames = [
     "sgf.dev",
@@ -43,12 +47,9 @@ locals {
           service  = local.cloudflare_tunnel_http_origin
         },
         {
-          hostname = hostname
-          service  = local.cloudflare_tunnel_https_origin
-          origin_request = {
-            http2_origin      = true
-            match_sn_ito_host = true
-          }
+          hostname       = hostname
+          service        = local.cloudflare_tunnel_https_origin
+          origin_request = local.cloudflare_tunnel_https_origin_request
         },
       ]
     ]),
@@ -63,12 +64,9 @@ locals {
           service  = local.cloudflare_tunnel_http_origin
         },
         {
-          hostname = hostname
-          service  = local.cloudflare_tunnel_https_origin
-          origin_request = {
-            http2_origin      = true
-            match_sn_ito_host = true
-          }
+          hostname       = hostname
+          service        = local.cloudflare_tunnel_https_origin
+          origin_request = local.cloudflare_tunnel_https_origin_request
         },
       ]
     ]),
