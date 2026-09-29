@@ -22,6 +22,15 @@ resource "aws_ssm_parameter" "opensgf_aws_account_id" {
   lifecycle { prevent_destroy = true }
 }
 
+resource "aws_ssm_parameter" "lz_aws_account_id" {
+  name             = "${local.ssm_key_prefix}/lz-aws-account-id"
+  type             = "String"
+  value_wo         = "CHANGEME"
+  value_wo_version = 1
+
+  lifecycle { prevent_destroy = true }
+}
+
 ephemeral "random_bytes" "openbao_unseal" { length = 32 }
 resource "aws_ssm_parameter" "openbao_unseal_key" {
   name             = "${local.ssm_key_prefix}/openbao-unseal-key"
