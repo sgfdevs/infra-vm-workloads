@@ -22,6 +22,7 @@ resource "ansible_host" "workload" {
     ssm_private_key_path                   = module.ssh_key.ssm_path
     ssm_git_deploy_private_key_path        = module.git_deploy_key.ssm_path
     ssm_opensgf_aws_account_id_path        = aws_ssm_parameter.opensgf_aws_account_id.name
+    ssm_lz_aws_account_id_path             = aws_ssm_parameter.lz_aws_account_id.name
     ssm_seaweedfs_s3_admin_access_key_path = aws_ssm_parameter.seaweedfs_access_key["admin"].name
     ssm_seaweedfs_s3_admin_secret_key_path = aws_ssm_parameter.seaweedfs_secret_key["admin"].name
     ssm_seaweedfs_s3_obs_access_key_path   = aws_ssm_parameter.seaweedfs_access_key["observability"].name
