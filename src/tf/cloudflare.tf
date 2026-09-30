@@ -13,7 +13,7 @@ locals {
   cloudflare_opensgf_account_id = one(data.cloudflare_accounts.opensgf.result).id
 
   cloudflare_tunnel_http_origin  = "http://127.0.0.1:8000"
-  cloudflare_tunnel_https_origin = "https://127.0.0.1:8443"
+  cloudflare_tunnel_https_origin = "https://127.0.0.1:9443"
   cloudflare_tunnel_https_origin_request = {
     http2_origin       = true
     origin_server_name = "traefik.sgf.dev"
