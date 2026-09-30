@@ -20,6 +20,7 @@ output "ssm_paths" {
   value = merge(module.sgfdevs_k3s_cluster.ssm_paths, {
     cloudflare_sgfdevs_tunnel_token = aws_ssm_parameter.cloudflare_sgfdevs_tunnel_token.name
     cloudflare_opensgf_tunnel_token = aws_ssm_parameter.cloudflare_opensgf_tunnel_token.name
+    crowdsec_traefik_bouncer_key    = aws_ssm_parameter.crowdsec_traefik_bouncer_key.name
   })
 }
 
