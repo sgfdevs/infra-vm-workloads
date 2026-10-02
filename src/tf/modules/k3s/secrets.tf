@@ -55,13 +55,13 @@ moved {
 }
 
 ephemeral "random_password" "dex_client" {
-  for_each = toset(["argocd", "grafana", "oauth2-proxy", "openbao"])
+  for_each = toset(["argocd", "grafana", "oauth2-proxy", "openbao", "glitchtip"])
   length   = 40
   special  = false
 }
 
 resource "aws_ssm_parameter" "dex_client_secret" {
-  for_each = toset(["argocd", "grafana", "oauth2-proxy", "openbao"])
+  for_each = toset(["argocd", "grafana", "oauth2-proxy", "openbao", "glitchtip"])
 
   name             = "${local.ssm_key_prefix}/dex-${each.key}-client-secret"
   type             = "SecureString"
