@@ -2,6 +2,9 @@
 - name: Prepare bootstrap inputs
   ansible.builtin.import_tasks: prepare.yml
 
+- name: Seed missing cluster ingress credentials
+  ansible.builtin.import_tasks: seed-bootstrap-secrets.yml
+
 - name: Install Argo CD
   ansible.builtin.import_tasks: install.yml
 
