@@ -15,7 +15,7 @@
   vars:
     bootstrap_argocd_application_name: bootstrap-config
 
-- name: Wait for issuer and its current revision public hook when opted in
+- name: Wait for issuer and its input-bound successful public hook when opted in
   ansible.builtin.include_tasks: wait-application.yml
   vars:
     bootstrap_argocd_application_name: k8s-oidc

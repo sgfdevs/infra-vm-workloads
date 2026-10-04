@@ -1,6 +1,6 @@
 {
   "health": {
-    "resource.customizations.health.argoproj.io_Application": "bd4524db482b0daa79c2a2c2447224a9fa75cde312098bdb634e56e727f8694f",
+    "resource.customizations.health.argoproj.io_Application": "1b94d8ebebfa92542c7493f979a688de7f10796348173abf599c59adf50f990b",
     "resource.customizations.health.external-secrets.io_ExternalSecret": "ac47d5af2bb486a8b2faf3c4af5f8b9952e47d1520bbcde578128d3d88426d41",
     "resource.customizations.health.external-secrets.io_SecretStore": "ac47d5af2bb486a8b2faf3c4af5f8b9952e47d1520bbcde578128d3d88426d41",
     "resource.customizations.health.external-secrets.io_ClusterSecretStore": "ac47d5af2bb486a8b2faf3c4af5f8b9952e47d1520bbcde578128d3d88426d41"
