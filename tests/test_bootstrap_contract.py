@@ -111,6 +111,21 @@ class BootstrapContract(unittest.TestCase):
                 self.assertEqual(result.returncode, rc)
         self.assertEqual(workflow["jobs"]["run"]["needs"], "bootstrap-inputs")
 
+    def test_offline_workflow_does_not_select_terraform(self):
+        import fnmatch
+        workflow = yaml.safe_load((ROOT / ".github/workflows/bootstrap-checks.yml").read_text())
+        self.assertEqual(workflow["permissions"], {"contents": "read"})
+        self.assertEqual(set(workflow["jobs"]), {"bootstrap-contract"})
+        ci_path = ROOT / ".github/workflows/ci.yml"
+        if not ci_path.exists():
+            ci_path = ROOT / ".github/workflows/tf-plan.yml"
+        ci = yaml.safe_load(ci_path.read_text())
+        step = next(step for step in ci["jobs"]["changes"]["steps"] if step.get("id") == "changed-files")
+        rules = yaml.safe_load(step["with"]["files_yaml"])["terraform"]
+        for changed in ["tests/test_seed_secrets.py", ".github/workflows/bootstrap-checks.yml",
+                        "src/ansible/roles/bootstrap_argocd/tasks/seed-secret.yml"]:
+            self.assertFalse(any(fnmatch.fnmatch(changed, pattern) for pattern in rules), changed)
+
     def test_no_eager_storage_fetches(self):
         prepare = (ROLE / "tasks/prepare.yml").read_text()
         self.assertNotIn("bootstrap_argocd_seaweedfs", prepare)
