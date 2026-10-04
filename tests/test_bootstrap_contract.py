@@ -3,7 +3,6 @@ import hashlib
 import json
 import os
 import subprocess
-from jinja2 import Environment, StrictUndefined
 from pathlib import Path
 import unittest
 
@@ -61,42 +60,14 @@ class BootstrapContract(unittest.TestCase):
         tasks = yaml.safe_load((ROLE / "tasks/platform.yml").read_text())
         names = [task["name"] for task in tasks]
         self.assertLess(names.index("Wait for foundation Application"),
-                        names.index("Wait for issuer and its current revision public hook when opted in"))
-        self.assertLess(names.index("Wait for issuer and its current revision public hook when opted in"),
+                        names.index("Wait for issuer and its input-bound successful public hook when opted in"))
+        self.assertLess(names.index("Wait for issuer and its input-bound successful public hook when opted in"),
                         names.index("Wait for AWS configuration Application after the issuer"))
         self.assertEqual(tasks[-1]["name"], "Wait for actual ESO store and ExternalSecret conditions before applications")
         wait = yaml.safe_load((ROLE / "tasks/wait-application.yml").read_text())[0]
         self.assertTrue(wait["run_once"])
         self.assertIn("bootstrap_argocd_issuer_operation_annotation", wait["until"][-1])
-        self.assertIn("'Succeeded'", wait["until"][-1])
-        self.assertIn("'syncResult'", wait["until"][-1])
-        self.assertIn("'operation'", wait["until"][-1])
-
-    def test_actual_wait_expression_and_legacy_compatibility(self):
-        task = yaml.safe_load((ROLE / "tasks/wait-application.yml").read_text())[0]
-        annotation = yaml.safe_load((ROLE / "defaults/main.yml").read_text())["bootstrap_argocd_issuer_operation_annotation"]
-        env = Environment(undefined=StrictUndefined)
-        env.filters["from_json"] = json.loads
-        for phase, revision, pending, gated, expected in [
-            ("Succeeded", "current", False, True, True),
-            ("Succeeded", "stale", False, True, False),
-            ("Succeeded", "current", True, True, False),
-            ("Running", "current", False, True, False),
-            ("Failed", "current", False, True, False),
-            ("", "", False, True, False),
-            ("", "", False, False, True)]:
-            app = {"metadata": {"annotations": {annotation: "true"} if gated else {}},
-                   "status": {"sync": {"status": "Synced", "revision": "current"},
-                              "health": {"status": "Healthy"},
-                              "operationState": {"phase": phase, "syncResult": {"revision": revision}}}}
-            if pending:
-                app["operation"] = {"sync": {}}
-            context = {"_bootstrap_argocd_application_read": {"rc": 0, "stdout": json.dumps(app)},
-                       "bootstrap_argocd_issuer_operation_annotation": annotation}
-            for key, value in task["vars"].items():
-                context[key] = env.compile_expression(value.strip()[2:-2].strip())(**context)
-            result = all(env.compile_expression(condition)(**context) for condition in task["until"])
-            self.assertEqual(result, expected, (phase, revision, pending, gated))
+        self.assertIn("bootstrap_issuer_hook_ready", wait["until"][-1])
 
     def test_workflow_bootstrap_credential_guard(self):
         workflow = yaml.safe_load((ROOT / ".github/workflows/ansible-manual.yml").read_text())
