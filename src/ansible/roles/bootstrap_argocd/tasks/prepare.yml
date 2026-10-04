@@ -5,7 +5,8 @@
     that:
       - ansible_verbosity | int < 4
       - not (lookup('env', 'ANSIBLE_DEBUG') | default('false', true) | bool)
-    fail_msg: Bootstrap requires verbosity below 4 and ANSIBLE_DEBUG disabled.
+      - not (lookup('ansible.builtin.config', 'DEFAULT_KEEP_REMOTE_FILES') | bool)
+    fail_msg: Bootstrap requires verbosity below 4, debug logging disabled and remote module-file retention disabled.
     quiet: true
   run_once: true
 

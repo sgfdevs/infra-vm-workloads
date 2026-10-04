@@ -29,7 +29,8 @@ class SafeFailure(Exception):
 
 class SeedRunner:
     def __init__(self, seed, responses, lookup_error=None, values=None):
-        self.context = {"bootstrap_argocd_seed": seed, "bootstrap_argocd_lz_aws_account_id": "111122223333"}
+        self.context = {"bootstrap_argocd_seed": seed, "bootstrap_argocd_lz_aws_account_id": "111122223333",
+                        "ansible_pipelining": True}
         self.responses = list(responses)
         self.lookup_error = lookup_error
         self.values = values or {}
@@ -38,7 +39,7 @@ class SeedRunner:
         self.env.filters.update(filters.FilterModule().filters())
         self.env.filters.update(combine=lambda a, b: a | b,
                                 dict2items=lambda d: [{"key": k, "value": v} for k, v in d.items()],
-                                to_json=json.dumps)
+                                to_json=json.dumps, bool=bool)
         self.env.globals["lookup"] = self.lookup
 
     def lookup(self, name, path, **kwargs):
@@ -260,11 +261,21 @@ class SeedContract(unittest.TestCase):
             runner.run()
         self.assertFalse(runner.writes)
 
+    def test_unsafe_transport_override_stops_before_secret_read(self):
+        runner = SeedRunner(self.seeds()[0], [])
+        runner.context["ansible_pipelining"] = False
+        with self.assertRaises(SafeFailure):
+            runner.run()
+        self.assertFalse(runner.lookups)
+        self.assertFalse(runner.writes)
+        self.assert_cleared(runner)
+
     def test_task_security_contract(self):
         task = yaml.safe_load((ROLE / "tasks/seed-secret.yml").read_text())[0]
         self.assertTrue(task["no_log"])
         self.assertFalse(task["diff"])
         self.assertTrue(task["run_once"])
+        self.assertTrue(task["vars"]["ansible_pipelining"])
         self.assertFalse(task["rescue"][0]["no_log"], "Only sanitized failure is visible")
         source = (ROLE / "tasks/seed-secret.yml").read_text()
         self.assertNotIn("cacheable: true", source)
