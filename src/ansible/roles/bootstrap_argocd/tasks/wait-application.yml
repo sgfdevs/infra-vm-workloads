@@ -1,0 +1,29 @@
+---
+- name: "Wait for Application reconciliation {{ bootstrap_argocd_application_name }}"
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - get
+      - application
+      - "{{ bootstrap_argocd_application_name }}"
+      - --namespace=argocd
+      - --ignore-not-found
+      - -o
+      - json
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: _bootstrap_argocd_application_read
+  changed_when: false
+  failed_when: false
+  retries: "{{ bootstrap_argocd_health_retries }}"
+  delay: "{{ bootstrap_argocd_health_delay }}"
+  vars:
+    _bootstrap_argocd_application: "{{ _bootstrap_argocd_application_read.stdout | default('{}', true) | from_json }}"
+    _bootstrap_argocd_application_status: "{{ _bootstrap_argocd_application.get('status', {}) }}"
+  until:
+    - _bootstrap_argocd_application_read.rc == 0
+    - _bootstrap_argocd_application_status.get('sync', {}).get('status', '') == 'Synced'
+    - _bootstrap_argocd_application_status.get('health', {}).get('status', '') == 'Healthy'
+    - >-
+      _bootstrap_argocd_application | bootstrap_issuer_hook_ready(bootstrap_argocd_issuer_operation_annotation)
+  run_once: true

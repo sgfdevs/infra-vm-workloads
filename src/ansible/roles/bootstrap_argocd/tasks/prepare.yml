@@ -1,4 +1,15 @@
 ---
+# amazon.aws's lookup logs returned values at verbosity 4, regardless of task no_log.
+- name: Reject unsafe controller debug logging before fetching parameters
+  ansible.builtin.assert:
+    that:
+      - ansible_verbosity | int < 4
+      - not (lookup('env', 'ANSIBLE_DEBUG') | default('false', true) | bool)
+      - not (lookup('ansible.builtin.config', 'DEFAULT_KEEP_REMOTE_FILES') | bool)
+    fail_msg: Bootstrap requires verbosity below 4, debug logging disabled and remote module-file retention disabled.
+    quiet: true
+  run_once: true
+
 - name: Fetch AWS caller identity
   amazon.aws.aws_caller_info:
   register: bootstrap_argocd_aws_caller_info
@@ -8,14 +19,19 @@
 
 - name: Fetch Argo CD SSM values
   ansible.builtin.set_fact:
-    bootstrap_argocd_git_deploy_private_key: "{{ lookup('amazon.aws.aws_ssm', ssm_git_deploy_private_key_path) }}"
-    bootstrap_argocd_opensgf_aws_account_id: "{{ lookup('amazon.aws.aws_ssm', ssm_opensgf_aws_account_id_path) }}"
-    bootstrap_argocd_lz_aws_account_id: "{{ lookup('amazon.aws.aws_ssm', ssm_lz_aws_account_id_path) }}"
-    bootstrap_argocd_seaweedfs_admin_access_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_admin_access_key_path) }}"
-    bootstrap_argocd_seaweedfs_admin_secret_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_admin_secret_key_path) }}"
-    bootstrap_argocd_seaweedfs_observability_access_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_obs_access_key_path) }}"
-    bootstrap_argocd_seaweedfs_observability_secret_key: "{{ lookup('amazon.aws.aws_ssm', ssm_seaweedfs_s3_obs_secret_key_path) }}"
+    bootstrap_argocd_git_deploy_private_key: "{{ lookup('amazon.aws.aws_ssm', ssm_git_deploy_private_key_path, region='us-east-2', decrypt=true) }}"
+    bootstrap_argocd_opensgf_aws_account_id: "{{ lookup('amazon.aws.aws_ssm', ssm_opensgf_aws_account_id_path, region='us-east-2', decrypt=true) }}"
+    bootstrap_argocd_lz_aws_account_id: "{{ lookup('amazon.aws.aws_ssm', ssm_lz_aws_account_id_path, region='us-east-2', decrypt=true) }}"
   no_log: true
+  run_once: true
+
+- name: Validate independently fetched cross-account identifiers
+  ansible.builtin.assert:
+    that:
+      - bootstrap_argocd_lz_aws_account_id is match('^[0-9]{12}$')
+      - bootstrap_argocd_opensgf_aws_account_id is match('^[0-9]{12}$')
+    fail_msg: Cross-account identifier parameters must contain operator-verified twelve-digit account IDs.
+    quiet: true
   run_once: true
 
 - name: Fetch GitHub SSH known hosts
@@ -38,3 +54,9 @@
   vars:
     bootstrap_argocd_manifest_name: AWS runtime ConfigMap
     bootstrap_argocd_manifest: "{{ lookup('template', role_path ~ '/templates/aws-runtime-configmap.yaml.j2') }}"
+
+- name: Install admission expansion before operator ServiceAccounts are created
+  ansible.builtin.include_tasks: apply-manifest.yml
+  vars:
+    bootstrap_argocd_manifest_name: AWS role ARN admission expansion
+    bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/aws-role-arn-expansion.yaml') }}"
