@@ -1,0 +1,45 @@
+{
+  "health": {
+    "resource.customizations.health.argoproj.io_Application": "bd4524db482b0daa79c2a2c2447224a9fa75cde312098bdb634e56e727f8694f",
+    "resource.customizations.health.external-secrets.io_ExternalSecret": "ac47d5af2bb486a8b2faf3c4af5f8b9952e47d1520bbcde578128d3d88426d41",
+    "resource.customizations.health.external-secrets.io_SecretStore": "ac47d5af2bb486a8b2faf3c4af5f8b9952e47d1520bbcde578128d3d88426d41",
+    "resource.customizations.health.external-secrets.io_ClusterSecretStore": "ac47d5af2bb486a8b2faf3c4af5f8b9952e47d1520bbcde578128d3d88426d41"
+  },
+  "admission": "873deaa2d4743ec8a70590dd3f669b00a5d14e41a082c22b42acae19c837e5cf",
+  "seeds": {
+    "kube-system/cloudflared-opensgf-token": {
+      "token": "/vm-workloads/sgfdevs/infra-vm-workloads/cloudflare-opensgf-tunnel-token"
+    },
+    "kube-system/cloudflared-sgfdevs-token": {
+      "token": "/vm-workloads/sgfdevs/infra-vm-workloads/cloudflare-sgfdevs-tunnel-token"
+    },
+    "kube-system/crowdsec-bouncer-key": {
+      "BOUNCER_KEY_traefik": "/vm-workloads/sgfdevs/infra-vm-workloads/crowdsec-traefik-bouncer-key"
+    },
+    "kube-system/traefik-tailnet-auth": {
+      "authkey": "/homelab/headscale/pods/sgfdevs/ingress-gateway-auth-key"
+    }
+  },
+  "eso": [
+    "clustersecretstore/argo-workflows-k8s/",
+    "clustersecretstore/argocd-k8s/",
+    "clustersecretstore/aws-ssm/",
+    "clustersecretstore/dex-k8s/",
+    "clustersecretstore/glitchtip-k8s/",
+    "clustersecretstore/grafana-k8s/",
+    "clustersecretstore/oauth2-proxy-k8s/",
+    "externalsecret/argo-workflows-secrets/external-secrets",
+    "externalsecret/argocd-secrets/external-secrets",
+    "externalsecret/dex-secrets/external-secrets",
+    "externalsecret/glitchtip-secrets/external-secrets",
+    "externalsecret/grafana-secrets/external-secrets",
+    "externalsecret/oauth2-proxy-secrets/external-secrets",
+    "externalsecret/ssm-cache/external-secrets",
+    "externalsecret/cloudflared-opensgf-token/kube-system",
+    "externalsecret/cloudflared-sgfdevs-token/kube-system",
+    "externalsecret/crowdsec-bouncer-key/kube-system",
+    "externalsecret/traefik-tailnet-auth/kube-system",
+    "secretstore/cache-k8s/external-secrets",
+    "secretstore/lz-headscale/kube-system"
+  ]
+}

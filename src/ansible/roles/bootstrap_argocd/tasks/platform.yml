@@ -5,23 +5,41 @@
     bootstrap_argocd_manifest_name: platform root
     bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/argocd-platform-root.yaml') }}"
 
-- name: Wait for foundational platform configuration
-  ansible.builtin.command:
-    argv: >-
-      {{
-        ['kubectl', 'wait', item.resource, '--for=condition=' ~ item.condition,
-         '--timeout=' ~ bootstrap_argocd_poll_timeout]
-        + ((item.namespace is defined) | ternary(['--namespace=' ~ (item.namespace | default(''))], []))
-      }}
-  environment:
-    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-  register: _bootstrap_argocd_configuration_ready
-  changed_when: false
-  failed_when: false
-  retries: "{{ bootstrap_argocd_health_retries }}"
-  delay: "{{ bootstrap_argocd_health_delay }}"
-  until: _bootstrap_argocd_configuration_ready.rc == 0
-  loop: "{{ bootstrap_argocd_configuration_resources }}"
-  loop_control:
-    label: "{{ item.resource }}"
+- name: Wait for foundation conditions without depending on AWS
+  ansible.builtin.include_tasks: wait-configuration.yml
+  vars:
+    bootstrap_argocd_wait_resources: "{{ bootstrap_argocd_foundation_resources }}"
+
+- name: Wait for foundation Application
+  ansible.builtin.include_tasks: wait-application.yml
+  vars:
+    bootstrap_argocd_application_name: bootstrap-config
+
+- name: Wait for issuer and its current revision public hook when opted in
+  ansible.builtin.include_tasks: wait-application.yml
+  vars:
+    bootstrap_argocd_application_name: k8s-oidc
+
+- name: Detect staged issuer readiness contract
+  ansible.builtin.set_fact:
+    _bootstrap_argocd_staged_issuer: >-
+      {{ (_bootstrap_argocd_application_read.stdout | from_json).get('metadata', {}).get('annotations', {})
+         .get(bootstrap_argocd_issuer_operation_annotation, '') == 'true' }}
   run_once: true
+
+- name: Wait for AWS configuration Application after the issuer
+  ansible.builtin.include_tasks: wait-application.yml
+  vars:
+    bootstrap_argocd_application_name: bootstrap-aws-config
+  when: _bootstrap_argocd_staged_issuer
+
+- name: Report legacy platform compatibility limit
+  ansible.builtin.debug:
+    msg: Legacy platform has no public issuer hook; only an existing healthy cluster rerun is supported until the staged split is published.
+  when: not _bootstrap_argocd_staged_issuer
+  run_once: true
+
+- name: Wait for actual ESO store and ExternalSecret conditions before applications
+  ansible.builtin.include_tasks: wait-configuration.yml
+  vars:
+    bootstrap_argocd_wait_resources: "{{ bootstrap_argocd_aws_resources }}"

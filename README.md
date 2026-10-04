@@ -1,5 +1,7 @@
 # infra-vm-workloads
 
+See [the bootstrap role guide](src/ansible/roles/bootstrap_argocd/README.md) for missing-only seeds, workflow credentials and GitOps migration recovery.
+
 Provisions SGF Devs workload VMs on Proxmox and bootstraps the k3s cluster and Argo CD baseline used to deploy Kubernetes manifests.
 
 ## Scope

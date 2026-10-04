@@ -49,8 +49,81 @@ bootstrap_argocd_dependent_operator_workloads:
     selector: app.kubernetes.io/instance=kubeblocks
   - namespace: observability
     selector: app.kubernetes.io/instance=otel-operator
-bootstrap_argocd_configuration_resources:
+bootstrap_argocd_foundation_resources:
   - resource: clusterissuer/letsencrypt-prod
+    condition: Ready
+
+# These are missing-only seeds, not a rotation or drift-repair policy.
+bootstrap_argocd_ingress_seeds:
+  - namespace: kube-system
+    name: cloudflared-sgfdevs-token
+    parameters:
+      token: /vm-workloads/sgfdevs/infra-vm-workloads/cloudflare-sgfdevs-tunnel-token
+  - namespace: kube-system
+    name: cloudflared-opensgf-token
+    parameters:
+      token: /vm-workloads/sgfdevs/infra-vm-workloads/cloudflare-opensgf-tunnel-token
+  - namespace: kube-system
+    name: traefik-tailnet-auth
+    cross_account: true
+    parameters:
+      authkey: /homelab/headscale/pods/sgfdevs/ingress-gateway-auth-key
+  - namespace: kube-system
+    name: crowdsec-bouncer-key
+    parameters:
+      BOUNCER_KEY_traefik: /vm-workloads/sgfdevs/infra-vm-workloads/crowdsec-traefik-bouncer-key
+bootstrap_argocd_aws_resources:
+  - resource: clustersecretstore/argo-workflows-k8s
+    condition: Ready
+  - resource: clustersecretstore/argocd-k8s
     condition: Ready
   - resource: clustersecretstore/aws-ssm
     condition: Ready
+  - resource: clustersecretstore/dex-k8s
+    condition: Ready
+  - resource: clustersecretstore/glitchtip-k8s
+    condition: Ready
+  - resource: clustersecretstore/grafana-k8s
+    condition: Ready
+  - resource: clustersecretstore/oauth2-proxy-k8s
+    condition: Ready
+  - resource: externalsecret/argo-workflows-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/argocd-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/dex-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/glitchtip-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/grafana-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/oauth2-proxy-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/ssm-cache
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/cloudflared-opensgf-token
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/cloudflared-sgfdevs-token
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/crowdsec-bouncer-key
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/traefik-tailnet-auth
+    namespace: kube-system
+    condition: Ready
+  - resource: secretstore/cache-k8s
+    namespace: external-secrets
+    condition: Ready
+  - resource: secretstore/lz-headscale
+    namespace: kube-system
+    condition: Ready
+bootstrap_argocd_issuer_operation_annotation: infra.sgf.dev/issuer-operation-gate
