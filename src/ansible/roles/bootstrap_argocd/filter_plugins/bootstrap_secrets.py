@@ -35,7 +35,29 @@ def bootstrap_secret_manifest(seed, values):
             "data": {key: base64.b64encode(value.encode()).decode() for key, value in values.items()}}
 
 
+def bootstrap_aws_credentials_patch(raw, desired):
+    try:
+        secret = json.loads(raw)
+        metadata = secret["metadata"]
+        if (metadata["namespace"] != "kube-system"
+                or metadata["name"] != "bootstrap-aws-credentials"
+                or not metadata["uid"] or not metadata["resourceVersion"]
+                or set(desired["data"]) != {"access-key-id", "secret-access-key"}):
+            raise ValueError()
+        current = secret.get("data") or {}
+        if not isinstance(current, dict):
+            raise ValueError()
+        if all(current.get(key) == value for key, value in desired["data"].items()):
+            return {}
+        # UID rejects a deleted/recreated target; resourceVersion rejects concurrent edits.
+        return {"metadata": {key: metadata[key] for key in ("uid", "resourceVersion")},
+                "data": desired["data"]}
+    except (ValueError, TypeError, KeyError, AttributeError):
+        raise ValueError("AWS credential Secret response could not be reconciled") from None
+
+
 class FilterModule:
     def filters(self):
         return {"bootstrap_secret_missing_keys": bootstrap_secret_missing_keys,
-                "bootstrap_secret_manifest": bootstrap_secret_manifest}
+                "bootstrap_secret_manifest": bootstrap_secret_manifest,
+                "bootstrap_aws_credentials_patch": bootstrap_aws_credentials_patch}

@@ -1,7 +1,5 @@
 # infra-vm-workloads
 
-See [the bootstrap role guide](src/ansible/roles/bootstrap_argocd/README.md) for create-only static AWS bootstrap credentials, staged ingress readiness and GitOps migration recovery.
-
 Provisions SGF Devs workload VMs on Proxmox and bootstraps the k3s cluster and Argo CD baseline used to deploy Kubernetes manifests.
 
 ## Scope
@@ -11,7 +9,7 @@ Provisions SGF Devs workload VMs on Proxmox and bootstraps the k3s cluster and A
 
 ## Structure
 - `src/tf/`: Provisions Proxmox VMs and emits Terraform-backed Ansible inventory data.
-- `src/ansible/`: Rebuilds the cluster (`cluster-bootstrap.yml`), supports rerunning Argo CD bootstrap (`argocd-bootstrap.yml`) and seeds static AWS credentials without platform waits (`bootstrap-aws-credentials.yml`).
+- `src/ansible/`: Rebuilds the cluster (`cluster-bootstrap.yml`) and supports rerunning Argo CD bootstrap (`argocd-bootstrap.yml`).
 - `.github/workflows/`: Terraform plan/apply and Ansible lint/manual execution workflows.
 
 ## Run
@@ -34,8 +32,7 @@ make ansible PLAYBOOK=argocd-bootstrap.yml
 - After the first apply, manually replace the write-only `CHANGEME` value in `/vm-workloads/sgfdevs/infra-vm-workloads/dex-github-oauth-client-secret` with the Dex GitHub OAuth App client secret. Do not increment `value_wo_version` unless intentionally replacing the manual value.
 - Replace `CHANGEME` in `/vm-workloads/sgfdevs/infra-vm-workloads/backups/{b2-account-id,b2-account-key}` with credentials scoped only to `sgfdevs-on-prem-k3s-backups`.
 - Apply `sgfdevs/infra-aws-core` first; it creates the K3s OIDC provider and permissions boundary required by this repository's workload roles.
-- Before Kubernetes transfer on an existing cluster, run `make ansible PLAYBOOK=bootstrap-aws-credentials.yml`. The seed-only playbook does not reconcile Argo, platform or admission, and does not wait for legacy readiness. Manual workflow runs require main and `initialize-terraform=true`.
-- Run `cluster-bootstrap.yml` for a complete rebuild, or `argocd-bootstrap.yml` to reconcile only Argo CD bootstrap resources. Cold bootstrap requires the populated TRANSFER graph or its cleanup successor on Kubernetes main; prepare is migration-only and has empty configuration children.
+- Run `cluster-bootstrap.yml` for a complete rebuild, or `argocd-bootstrap.yml` to reconcile only Argo CD bootstrap resources.
 
 ## Operating constraints
 - This repo mixes infrastructure provisioning and cluster bootstrap; run Terraform and Ansible steps intentionally and in order.
