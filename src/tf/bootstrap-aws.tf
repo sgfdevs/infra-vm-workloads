@@ -31,15 +31,12 @@ resource "aws_iam_access_key" "bootstrap_reader" {
   user = aws_iam_user.bootstrap_reader.name
 }
 
-resource "aws_ssm_parameter" "bootstrap_aws_access_key_id" {
-  name  = "/vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/access-key-id"
-  type  = "SecureString"
-  value = aws_iam_access_key.bootstrap_reader.id
-}
-
-resource "aws_ssm_parameter" "bootstrap_aws_secret_access_key" {
-  name = "/vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/secret-access-key"
+resource "aws_ssm_parameter" "bootstrap_aws_credentials" {
+  name = "/vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/credentials"
   type = "SecureString"
-  # IAM already stores the secret in encrypted state. Ordinary value follows key replacements.
-  value = aws_iam_access_key.bootstrap_reader.secret
+  # Publish both fields together so readers cannot mix access-key generations.
+  value = jsonencode({
+    access-key-id     = aws_iam_access_key.bootstrap_reader.id
+    secret-access-key = aws_iam_access_key.bootstrap_reader.secret
+  })
 }

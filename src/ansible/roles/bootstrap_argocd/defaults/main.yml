@@ -54,12 +54,13 @@ bootstrap_argocd_foundation_resources:
     condition: Ready
 
 # Reconciled credentials for the namespace-local static ingress SecretStore.
+# Both fields are read together from the same bundled SSM parameter.
 bootstrap_argocd_aws_credential_seeds:
   - namespace: kube-system
     name: bootstrap-aws-credentials
     parameters:
-      access-key-id: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/access-key-id
-      secret-access-key: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/secret-access-key
+      access-key-id: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/credentials
+      secret-access-key: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/credentials
 bootstrap_argocd_ingress_resources:
   - resource: secretstore/bootstrap-aws-ssm
     namespace: kube-system
