@@ -1,0 +1,7 @@
+---
+- name: Read one workload parameter on the controller
+  ansible.builtin.set_fact:
+    _bootstrap_argocd_seed_values: >-
+      {{ _bootstrap_argocd_seed_values | combine({bootstrap_argocd_seed_parameter.key:
+         lookup('amazon.aws.aws_ssm', bootstrap_argocd_seed_parameter.value,
+                region='us-east-2', decrypt=true, on_missing='error', on_denied='error')}) }}

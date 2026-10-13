@@ -49,8 +49,74 @@ bootstrap_argocd_dependent_operator_workloads:
     selector: app.kubernetes.io/instance=kubeblocks
   - namespace: observability
     selector: app.kubernetes.io/instance=otel-operator
-bootstrap_argocd_configuration_resources:
+bootstrap_argocd_foundation_resources:
   - resource: clusterissuer/letsencrypt-prod
+    condition: Ready
+
+# Reconciled credentials for the namespace-local static ingress SecretStore.
+# Both fields are read together from the same bundled SSM parameter.
+bootstrap_argocd_aws_credential_seeds:
+  - namespace: kube-system
+    name: bootstrap-aws-credentials
+    parameters:
+      access-key-id: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/credentials
+      secret-access-key: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/credentials
+bootstrap_argocd_ingress_resources:
+  - resource: secretstore/bootstrap-aws-ssm
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/cloudflared-opensgf-token
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/cloudflared-sgfdevs-token
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/crowdsec-bouncer-key
+    namespace: kube-system
+    condition: Ready
+bootstrap_argocd_aws_resources:
+  - resource: clustersecretstore/argo-workflows-k8s
+    condition: Ready
+  - resource: clustersecretstore/argocd-k8s
     condition: Ready
   - resource: clustersecretstore/aws-ssm
     condition: Ready
+  - resource: clustersecretstore/dex-k8s
+    condition: Ready
+  - resource: clustersecretstore/glitchtip-k8s
+    condition: Ready
+  - resource: clustersecretstore/grafana-k8s
+    condition: Ready
+  - resource: clustersecretstore/oauth2-proxy-k8s
+    condition: Ready
+  - resource: externalsecret/argo-workflows-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/argocd-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/dex-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/glitchtip-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/grafana-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/oauth2-proxy-secrets
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/ssm-cache
+    namespace: external-secrets
+    condition: Ready
+  - resource: externalsecret/traefik-tailnet-auth
+    namespace: kube-system
+    condition: Ready
+  - resource: secretstore/cache-k8s
+    namespace: external-secrets
+    condition: Ready
+  - resource: secretstore/lz-headscale
+    namespace: kube-system
+    condition: Ready
+bootstrap_argocd_issuer_operation_annotation: infra.sgf.dev/issuer-operation-gate
