@@ -5,7 +5,53 @@
     bootstrap_argocd_manifest_name: platform root
     bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/argocd-platform-root.yaml') }}"
 
-- name: Wait for foundation conditions without depending on AWS
+- name: Detect static ingress or an already healthy legacy issuer
+  ansible.builtin.command:
+    argv: [kubectl, get, applications, --namespace=argocd, -o, json]
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: _bootstrap_argocd_platform_children_read
+  changed_when: false
+  failed_when: false
+  retries: "{{ bootstrap_argocd_health_retries }}"
+  delay: "{{ bootstrap_argocd_health_delay }}"
+  vars:
+    _bootstrap_argocd_platform_children: >-
+      {{ (_bootstrap_argocd_platform_children_read.stdout | default('{}', true) | from_json).get('items', []) }}
+    _bootstrap_argocd_ingress_application: >-
+      {{ _bootstrap_argocd_platform_children | selectattr('metadata.name', 'equalto', 'bootstrap-ingress-config') | list }}
+    _bootstrap_argocd_legacy_issuer: >-
+      {{ _bootstrap_argocd_platform_children | selectattr('metadata.name', 'equalto', 'k8s-oidc') | first | default({}) }}
+  until:
+    - _bootstrap_argocd_platform_children_read.rc == 0
+    - >-
+      _bootstrap_argocd_ingress_application | length > 0 or
+      (_bootstrap_argocd_legacy_issuer.get('metadata', {}).get('annotations', {})
+         .get(bootstrap_argocd_issuer_operation_annotation, '') != 'true' and
+       _bootstrap_argocd_legacy_issuer.get('status', {}).get('sync', {}).get('status', '') == 'Synced' and
+       _bootstrap_argocd_legacy_issuer.get('status', {}).get('health', {}).get('status', '') == 'Healthy')
+  run_once: true
+
+- name: Select static ingress readiness contract
+  ansible.builtin.set_fact:
+    _bootstrap_argocd_static_ingress: >-
+      {{ (_bootstrap_argocd_platform_children_read.stdout | from_json).get('items', [])
+         | selectattr('metadata.name', 'equalto', 'bootstrap-ingress-config') | list | length > 0 }}
+  run_once: true
+
+- name: Wait for static ingress store and ExternalSecrets before foundation
+  ansible.builtin.include_tasks: wait-configuration.yml
+  vars:
+    bootstrap_argocd_wait_resources: "{{ bootstrap_argocd_ingress_resources }}"
+  when: _bootstrap_argocd_static_ingress
+
+- name: Wait for static ingress Application
+  ansible.builtin.include_tasks: wait-application.yml
+  vars:
+    bootstrap_argocd_application_name: bootstrap-ingress-config
+  when: _bootstrap_argocd_static_ingress
+
+- name: Wait for foundation conditions without tailnet or DNS gateway readiness
   ansible.builtin.include_tasks: wait-configuration.yml
   vars:
     bootstrap_argocd_wait_resources: "{{ bootstrap_argocd_foundation_resources }}"
@@ -42,4 +88,6 @@
 - name: Wait for actual ESO store and ExternalSecret conditions before applications
   ansible.builtin.include_tasks: wait-configuration.yml
   vars:
-    bootstrap_argocd_wait_resources: "{{ bootstrap_argocd_aws_resources }}"
+    bootstrap_argocd_wait_resources: >-
+      {{ bootstrap_argocd_aws_resources + (_bootstrap_argocd_static_ingress | ternary([],
+         bootstrap_argocd_ingress_resources | rejectattr('resource', 'equalto', 'secretstore/bootstrap-aws-ssm') | list)) }}

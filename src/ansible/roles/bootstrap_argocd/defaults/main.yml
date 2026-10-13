@@ -53,25 +53,26 @@ bootstrap_argocd_foundation_resources:
   - resource: clusterissuer/letsencrypt-prod
     condition: Ready
 
-# These are missing-only seeds, not a rotation or drift-repair policy.
-bootstrap_argocd_ingress_seeds:
+# Create-only credentials for the namespace-local static ingress SecretStore.
+bootstrap_argocd_aws_credential_seeds:
   - namespace: kube-system
-    name: cloudflared-sgfdevs-token
+    name: bootstrap-aws-credentials
     parameters:
-      token: /vm-workloads/sgfdevs/infra-vm-workloads/cloudflare-sgfdevs-tunnel-token
-  - namespace: kube-system
-    name: cloudflared-opensgf-token
-    parameters:
-      token: /vm-workloads/sgfdevs/infra-vm-workloads/cloudflare-opensgf-tunnel-token
-  - namespace: kube-system
-    name: traefik-tailnet-auth
-    cross_account: true
-    parameters:
-      authkey: /homelab/headscale/pods/sgfdevs/ingress-gateway-auth-key
-  - namespace: kube-system
-    name: crowdsec-bouncer-key
-    parameters:
-      BOUNCER_KEY_traefik: /vm-workloads/sgfdevs/infra-vm-workloads/crowdsec-traefik-bouncer-key
+      access-key-id: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/access-key-id
+      secret-access-key: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/secret-access-key
+bootstrap_argocd_ingress_resources:
+  - resource: secretstore/bootstrap-aws-ssm
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/cloudflared-opensgf-token
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/cloudflared-sgfdevs-token
+    namespace: kube-system
+    condition: Ready
+  - resource: externalsecret/crowdsec-bouncer-key
+    namespace: kube-system
+    condition: Ready
 bootstrap_argocd_aws_resources:
   - resource: clustersecretstore/argo-workflows-k8s
     condition: Ready
@@ -107,15 +108,6 @@ bootstrap_argocd_aws_resources:
     condition: Ready
   - resource: externalsecret/ssm-cache
     namespace: external-secrets
-    condition: Ready
-  - resource: externalsecret/cloudflared-opensgf-token
-    namespace: kube-system
-    condition: Ready
-  - resource: externalsecret/cloudflared-sgfdevs-token
-    namespace: kube-system
-    condition: Ready
-  - resource: externalsecret/crowdsec-bouncer-key
-    namespace: kube-system
     condition: Ready
   - resource: externalsecret/traefik-tailnet-auth
     namespace: kube-system
