@@ -37,9 +37,9 @@ class BootstrapContract(unittest.TestCase):
         admission = list(yaml.safe_load_all((ROLE / "files/aws-role-arn-expansion.yaml").read_text()))
         self.assertEqual(digest(admission), EXPECTED["admission"])
         defaults = yaml.safe_load((ROLE / "defaults/main.yml").read_text())
-        seeds = defaults["bootstrap_argocd_ingress_seeds"]
+        seeds = defaults["bootstrap_argocd_aws_credential_seeds"]
         self.assertEqual({seed["namespace"] + "/" + seed["name"]: seed["parameters"] for seed in seeds}, EXPECTED["seeds"])
-        self.assertEqual(len(seeds), 4)
+        self.assertEqual(len(seeds), 1)
         self.assertEqual({item["resource"] + "/" + item.get("namespace", "") for item in defaults["bootstrap_argocd_aws_resources"]},
                          set(EXPECTED["eso"]))
         self.assertFalse(any("secretstore/" in item["resource"] for item in defaults["bootstrap_argocd_foundation_resources"]))

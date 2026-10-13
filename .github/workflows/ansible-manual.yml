@@ -11,6 +11,7 @@ on:
           - base-os-updates.yml
           - cluster-bootstrap.yml
           - argocd-bootstrap.yml
+          - bootstrap-aws-credentials.yml
       initialize-terraform:
         description: Initialize Terraform first
         type: boolean
@@ -33,7 +34,7 @@ jobs:
           INITIALIZE_TERRAFORM: ${{ inputs.initialize-terraform }}
         run: |
           case "$PLAYBOOK" in
-            argocd-bootstrap.yml|cluster-bootstrap.yml)
+            argocd-bootstrap.yml|cluster-bootstrap.yml|bootstrap-aws-credentials.yml)
               if [ "$INITIALIZE_TERRAFORM" != true ] || [ "$GITHUB_REF" != refs/heads/main ]; then
                 echo "Bootstrap requires main and initialize-terraform=true for workflow AWS credentials."
                 exit 1

@@ -140,10 +140,10 @@ def existing(seed, empty=None):
 
 class SeedContract(unittest.TestCase):
     def seeds(self):
-        return yaml.safe_load((ROLE / "defaults/main.yml").read_text())["bootstrap_argocd_ingress_seeds"]
+        return yaml.safe_load((ROLE / "defaults/main.yml").read_text())["bootstrap_argocd_aws_credential_seeds"]
 
     def assert_cleared(self, runner):
-        for key in ["values", "sts", "read", "create", "winner"]:
+        for key in ["values", "read", "create", "winner"]:
             self.assertEqual(runner.context["_bootstrap_argocd_seed_" + key], {})
         self.assertNotIn(SENSITIVE, json.dumps(runner.context))
         self.assertNotIn(TEMP["session_token"], json.dumps(runner.context))

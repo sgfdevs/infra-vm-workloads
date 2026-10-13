@@ -5,6 +5,8 @@
     bootstrap_argocd_manifest_name: platform root
     bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/argocd-platform-root.yaml') }}"
 
+# Prepare has an empty allowEmpty:true child; only transfer owns the static store.
+# The wave -4 gate can block issuer creation, so static detection must not require it.
 - name: Detect static ingress or an already healthy legacy issuer
   ansible.builtin.command:
     argv: [kubectl, get, applications, --namespace=argocd, -o, json]
@@ -19,13 +21,15 @@
     _bootstrap_argocd_platform_children: >-
       {{ (_bootstrap_argocd_platform_children_read.stdout | default('{}', true) | from_json).get('items', []) }}
     _bootstrap_argocd_ingress_application: >-
-      {{ _bootstrap_argocd_platform_children | selectattr('metadata.name', 'equalto', 'bootstrap-ingress-config') | list }}
+      {{ _bootstrap_argocd_platform_children | selectattr('metadata.name', 'equalto', 'bootstrap-ingress-config') | first | default({}) }}
     _bootstrap_argocd_legacy_issuer: >-
       {{ _bootstrap_argocd_platform_children | selectattr('metadata.name', 'equalto', 'k8s-oidc') | first | default({}) }}
   until:
     - _bootstrap_argocd_platform_children_read.rc == 0
     - >-
-      _bootstrap_argocd_ingress_application | length > 0 or
+      (_bootstrap_argocd_ingress_application | length > 0 and
+       _bootstrap_argocd_ingress_application.get('spec', {}).get('syncPolicy', {}).get('automated', {})
+         .get('allowEmpty', false) != true) or
       (_bootstrap_argocd_legacy_issuer.get('metadata', {}).get('annotations', {})
          .get(bootstrap_argocd_issuer_operation_annotation, '') != 'true' and
        _bootstrap_argocd_legacy_issuer.get('status', {}).get('sync', {}).get('status', '') == 'Synced' and
@@ -33,10 +37,15 @@
   run_once: true
 
 - name: Select static ingress readiness contract
+  vars:
+    _bootstrap_argocd_ingress_application: >-
+      {{ (_bootstrap_argocd_platform_children_read.stdout | from_json).get('items', [])
+         | selectattr('metadata.name', 'equalto', 'bootstrap-ingress-config') | first | default({}) }}
   ansible.builtin.set_fact:
     _bootstrap_argocd_static_ingress: >-
-      {{ (_bootstrap_argocd_platform_children_read.stdout | from_json).get('items', [])
-         | selectattr('metadata.name', 'equalto', 'bootstrap-ingress-config') | list | length > 0 }}
+      {{ _bootstrap_argocd_ingress_application | length > 0 and
+         _bootstrap_argocd_ingress_application.get('spec', {}).get('syncPolicy', {}).get('automated', {})
+           .get('allowEmpty', false) != true }}
   run_once: true
 
 - name: Wait for static ingress store and ExternalSecrets before foundation
