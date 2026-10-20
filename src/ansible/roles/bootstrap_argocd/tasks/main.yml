@@ -4,6 +4,7 @@
 
 - name: Reconcile static AWS bootstrap credentials
   ansible.builtin.import_tasks: seed-bootstrap-secrets.yml
+  tags: bootstrap_aws_credentials
 
 - name: Install Argo CD
   ansible.builtin.import_tasks: install.yml
