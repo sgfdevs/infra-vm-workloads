@@ -54,3 +54,5 @@ bootstrap_argocd_configuration_resources:
     condition: Ready
   - resource: clustersecretstore/aws-ssm
     condition: Ready
+
+bootstrap_argocd_aws_credentials_parameter: /vm-workloads/sgfdevs/infra-vm-workloads/bootstrap-aws/credentials
