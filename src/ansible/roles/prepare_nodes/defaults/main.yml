@@ -5,3 +5,6 @@ prepare_nodes_packages:
 prepare_nodes_sysctls:
   fs.inotify.max_user_instances: "8192"
   fs.inotify.max_user_watches: "524288"
+prepare_nodes_shutdown_grace_period_seconds: 120
+prepare_nodes_shutdown_critical_period_seconds: 30
+prepare_nodes_shutdown_inhibit_delay_seconds: 150
