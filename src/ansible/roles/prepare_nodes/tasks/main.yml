@@ -19,3 +19,39 @@
     name: iscsid
     state: started
     enabled: true
+
+- name: Configure graceful node shutdown
+  tags: node_shutdown
+  block:
+    - name: Create graceful shutdown configuration directories
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      loop:
+        - /var/lib/rancher/k3s/agent/etc/kubelet.conf.d
+        - /etc/systemd/logind.conf.d
+
+    - name: Configure kubelet graceful shutdown
+      ansible.builtin.copy:
+        dest: /var/lib/rancher/k3s/agent/etc/kubelet.conf.d/90-node-shutdown.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          apiVersion: kubelet.config.k8s.io/v1beta1
+          kind: KubeletConfiguration
+          shutdownGracePeriod: {{ prepare_nodes_shutdown_grace_period_seconds }}s
+          shutdownGracePeriodCriticalPods: {{ prepare_nodes_shutdown_critical_period_seconds }}s
+
+    - name: Allow kubelet enough time to delay shutdown
+      ansible.builtin.copy:
+        dest: /etc/systemd/logind.conf.d/99-k3s-node-shutdown.conf
+        owner: root
+        group: root
+        mode: "0644"
+        content: |
+          [Login]
+          InhibitDelayMaxSec={{ prepare_nodes_shutdown_inhibit_delay_seconds }}s
