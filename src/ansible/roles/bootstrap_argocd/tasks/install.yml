@@ -32,12 +32,18 @@
         + ['-n', 'argocd', '-f', '-']
       }}
   args:
-    stdin: >-
-      {{ lookup(
+    stdin: |
+      {% for manifest in lookup(
            'url',
            'https://raw.githubusercontent.com/argoproj/argo-cd/v3.5.5/manifests/ha/install.yaml',
            split_lines=False
-         ) }}
+         ) | from_yaml_all %}
+      {% if manifest.kind == 'ConfigMap' and manifest.metadata.name == 'argocd-cmd-params-cm' %}
+      {% set manifest = manifest | combine({'data': {'reposerver.max.combined.directory.manifests.size': '20M'}}, recursive=True) %}
+      {% endif %}
+      ---
+      {{ manifest | to_nice_yaml }}
+      {% endfor %}
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   register: _bootstrap_argocd_apply
