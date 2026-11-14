@@ -3,13 +3,15 @@ collections:
   - name: cloud.terraform
     version: 4.0.0
   - name: amazon.aws
-    version: 11.4.0
+    version: 12.1.0
   - name: ansible.posix
-    version: 2.2.1
+    version: 2.2.2
+  - name: ansible.utils
+    version: 6.1.1
   - name: community.general
-    version: 13.1.0
+    version: 14.0.1
   - name: https://github.com/k3s-io/k3s-ansible.git
     type: git
-    version: 1.2.1
+    version: 1.2.2
   - name: kubernetes.core
-    version: 6.4.0
+    version: 6.6.0
