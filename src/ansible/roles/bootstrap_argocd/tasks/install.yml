@@ -51,6 +51,18 @@
     or bootstrap_argocd_force_conflicts | bool
   run_once: true
 
+- name: Apply Argo CD command parameters
+  ansible.builtin.include_tasks:
+    file: apply-manifest.yml
+    apply:
+      notify: Restart Argo CD repo-server
+  vars:
+    bootstrap_argocd_manifest_name: Argo CD command parameters
+    bootstrap_argocd_manifest: "{{ lookup('file', role_path ~ '/files/argocd-cmd-params-cm.yaml') }}"
+
+- name: Apply Argo CD command parameter changes before readiness checks
+  ansible.builtin.meta: flush_handlers
+
 - name: Wait for Argo CD CRDs
   ansible.builtin.command:
     argv:

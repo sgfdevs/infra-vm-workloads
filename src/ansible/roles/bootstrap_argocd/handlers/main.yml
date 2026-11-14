@@ -1,0 +1,13 @@
+---
+- name: Restart Argo CD repo-server
+  ansible.builtin.command:
+    argv:
+      - kubectl
+      - rollout
+      - restart
+      - deployment/argocd-repo-server
+      - --namespace=argocd
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  changed_when: true
+  run_once: true
