@@ -20,6 +20,10 @@
     state: started
     enabled: true
 
+- name: Configure kubelet pod capacity
+  ansible.builtin.import_tasks: max_pods.yml
+  tags: kubelet_pod_capacity
+
 - name: Configure graceful node shutdown
   tags: node_shutdown
   block:

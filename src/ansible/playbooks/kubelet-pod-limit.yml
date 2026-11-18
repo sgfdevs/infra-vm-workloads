@@ -1,0 +1,88 @@
+---
+- name: Apply the kubelet pod limit to existing K3s servers
+  hosts: k3s_servers
+  become: true
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  vars:
+    k3s_pod_limit_kubectl:
+      - /usr/local/bin/k3s
+      - kubectl
+      - --kubeconfig=/etc/rancher/k3s/k3s.yaml
+      - --request-timeout=10s
+    k3s_pod_limit_probe:
+      - get
+      - node
+      - "{{ inventory_hostname }}"
+      - "-o=jsonpath={.status.allocatable.pods}"
+  tasks:
+    - name: Read the current allocatable pod count
+      ansible.builtin.command:
+        argv: "{{ k3s_pod_limit_kubectl + k3s_pod_limit_probe }}"
+      register: k3s_pod_limit_current
+      changed_when: false
+      when: not ansible_check_mode
+
+    - name: Check the control plane before updating the pod limit
+      when:
+        - not ansible_check_mode
+        - k3s_pod_limit_current.stdout != (k3s_max_pods | string)
+      block:
+        - name: Check the local API server is ready
+          ansible.builtin.command:
+            argv: "{{ k3s_pod_limit_kubectl + ['get', '--raw=/readyz'] }}"
+          changed_when: false
+
+        - name: Check all K3s servers are ready
+          ansible.builtin.command:
+            argv: >-
+              {{ k3s_pod_limit_kubectl + ['wait', '--for=condition=Ready', '--timeout=0s']
+                 + (groups['k3s_servers'] | map('regex_replace', '^', 'node/') | list) }}
+          changed_when: false
+
+    - name: Write the kubelet pod limit
+      ansible.builtin.import_role:
+        name: prepare_nodes
+        tasks_from: max_pods
+
+    - name: Activate the kubelet pod limit
+      when:
+        - not ansible_check_mode
+        - k3s_pod_limit_current.stdout != (k3s_max_pods | string)
+      block:
+        - name: Restart K3s
+          ansible.builtin.systemd_service:
+            name: k3s
+            state: restarted
+
+        - name: Wait for the local API server to be ready
+          ansible.builtin.command:
+            argv: "{{ k3s_pod_limit_kubectl + ['get', '--raw=/readyz'] }}"
+          register: k3s_pod_limit_readyz
+          until: k3s_pod_limit_readyz.rc == 0
+          retries: 30
+          delay: 5
+          changed_when: false
+
+        - name: Wait for the node to advertise the configured pod limit
+          ansible.builtin.command:
+            argv: "{{ k3s_pod_limit_kubectl + k3s_pod_limit_probe }}"
+          register: k3s_pod_limit_active
+          until:
+            - k3s_pod_limit_active.rc == 0
+            - k3s_pod_limit_active.stdout == (k3s_max_pods | string)
+          retries: 30
+          delay: 5
+          changed_when: false
+
+        - name: Wait for all K3s servers to be ready
+          ansible.builtin.command:
+            argv: >-
+              {{ k3s_pod_limit_kubectl + ['wait', '--for=condition=Ready', '--timeout=0s']
+                 + (groups['k3s_servers'] | map('regex_replace', '^', 'node/') | list) }}
+          register: k3s_pod_limit_nodes_ready
+          until: k3s_pod_limit_nodes_ready.rc == 0
+          retries: 30
+          delay: 5
+          changed_when: false
