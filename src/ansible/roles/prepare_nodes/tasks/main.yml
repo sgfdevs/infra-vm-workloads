@@ -20,23 +20,39 @@
     state: started
     enabled: true
 
-- name: Configure kubelet pod capacity
-  ansible.builtin.import_tasks: max_pods.yml
+- name: Create kubelet configuration directory
+  ansible.builtin.file:
+    path: /var/lib/rancher/k3s/agent/etc/kubelet.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - kubelet_pod_capacity
+    - node_shutdown
+
+- name: Configure the kubelet pod limit
+  ansible.builtin.copy:
+    dest: /var/lib/rancher/k3s/agent/etc/kubelet.conf.d/95-max-pods.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      apiVersion: kubelet.config.k8s.io/v1beta1
+      kind: KubeletConfiguration
+      maxPods: {{ k3s_max_pods }}
   tags: kubelet_pod_capacity
 
 - name: Configure graceful node shutdown
   tags: node_shutdown
   block:
-    - name: Create graceful shutdown configuration directories
+    - name: Create logind configuration directory
       ansible.builtin.file:
-        path: "{{ item }}"
+        path: /etc/systemd/logind.conf.d
         state: directory
         owner: root
         group: root
         mode: "0755"
-      loop:
-        - /var/lib/rancher/k3s/agent/etc/kubelet.conf.d
-        - /etc/systemd/logind.conf.d
 
     - name: Configure kubelet graceful shutdown
       ansible.builtin.copy:
